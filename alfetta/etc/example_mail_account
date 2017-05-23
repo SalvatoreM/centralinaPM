@@ -1,0 +1,9 @@
+out.miosmtp.it
+miomail@miosmtp,endode64(miapassword)
+sender@firenze.ninux.org,receiver@ml.ninux.org
+emailsend#yes
+smtp#out.miostp.it
+account#salvatore.moretti740@alice.it
+passwd#crittografata
+sentfrom#irenze.ninux.org,receiver@ml.ninux.org
+sendto#centraline@googlegroups.com
