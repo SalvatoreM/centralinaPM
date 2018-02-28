@@ -30,7 +30,7 @@ class logger():
 		self.h=time.strftime("%H")
 		self.pm10maxt=time.strftime("%H:%M")
 		self.pm25maxt=time.strftime("%H:%M")
-		self.pm10_y=100
+		self.pm10_y=0
 		self.pm25_y=0
 		self.pm10_year=0
 		self.pm25_year=0
