@@ -20,7 +20,6 @@ import signal
 #============================================================================
 class logger():
 	def __init__(self,logfile,name):
-#		print ("init Logger")
 		self.reg=False
 		self.report=False
 		self.name=""
