@@ -63,3 +63,5 @@ I pacchetti sono i seguenti:
 
 * Cattura eventi su file e cartelle
 > sudo apt-get install incron
+> echo root >> /etc/incron.allow
+
