@@ -1,0 +1,2 @@
+#/var/www/html/alfetta/comandi/ IN_CLOSE_WRITE $@/$#
+/var/www/html/alfetta/comandi/ IN_CLOSE_WRITE /var/www/html/alfetta/comandi/proxycom.sh

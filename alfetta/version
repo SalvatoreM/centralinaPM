@@ -1,0 +1,34 @@
+# File version register
+# path of file /home/pi/alfetta/version
+# This file is read by sd011.py (at start) and copied to /var/ww/html/alfetta/version.log
+# code of version is for:
+#    gn.py.sh.w.pack
+# gn   = general
+# py   = python application
+# sh   = shell script *sh
+# w    = web interface
+# pack = dipendeces installed
+#
+#------------------------------------------------------------ 
+# Initial actual
+#Ver.  3.2.1.1.1#
+# /usr/bin/autohotspot complete path for wpa_.. and iw command
+#Ver  3.2
+#cron execution /usr/bin/autohotspot.sh 
+#------------------------------------------
+#Ver. 3.2.2.1.1
+# Modified crontab ; erroer di battitura per avvio processo autohotspot
+#Ver. 3.2.3.1.1
+# Modified tstforkeys.sh  ; errore di copia chiavi in opevpn directory
+#------------------------------------------
+Ver. 3.3.4.2.1
+#  SDS011.py mofdify to accept ttyS0 interface also ttyUSB0
+#  calibration/autocalibration.py added to calculate linear regrassion parameters
+#  calibration/autocalibration.sh added to manage autocalibration process by web interface
+#  html/alfetta/calibration.php added to comand adn retrive data for autolcalibration procedure
+#  html/alfetta/comandi/proxycom.sh added to triggerd by incron event and execute  html/alfetta/comandi/comando.sh
+#  html/alfetta/scatter.html added : Calibration GUI
+#  html/alfetta/scatter.js java graphic procedure for calibration GUI
+#  html/alfetta/show.html modified to access calibration web page
+#  html/alfetta/index.php modified to access directely to calibration web page
+#------------------------------------------

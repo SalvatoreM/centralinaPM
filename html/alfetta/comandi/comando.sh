@@ -1,1 +1,1 @@
-/home/pi/alfetta/comandi/connetti.sh 
+/home/pi/alfetta/check.sh

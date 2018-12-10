@@ -1,0 +1,520 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><TITLE>Centralina - Diagnostica</TITLE></meta>
+</HEAD>
+<style>
+table, th, td {
+    border: 1px solid black;
+    text-align :center;
+    align : center;
+}
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+//    width:750px;
+}
+#sensor_head {background-color:#e6ffff;}
+#hosts_head {background-color:#ffffcc;}
+#titolo {background-color:#ffd633;}
+#wifi {background-color:#ffd633;}
+#misure {background-color:#66cc99;}
+#commands_head {background-color:#cccc00;}
+#bstart {color:green;}
+#bstop {color:red;}
+#equazioni {background-color:#66cc99;}
+#log {background-color:#e6ffff;}
+#diario {background-color:#ffd633;}
+
+.indicator {
+color: blue;
+animation: blink 10s steps(5, start) infinite;
+}
+</style>
+<script src="../chart/Chart.bundle.js"></script>
+<!--<script src="../chart/Chart.js"></script>-->
+<script src="../chart/moment.js"></script>
+<script src="trend.js"></script> 
+<script>
+var process_status="";
+var actual_status="";
+var diff=0;
+var img = document.createElement("IMG");
+img.setAttribute("src", "pause.jpg");
+img.setAttribute("width", "48");
+img.setAttribute("height", "48");
+
+function refresh () {
+   console.log("Refresh");
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         if (ret.length > 10) {
+            ret=ret.replace(/<br>/g,"");
+            ret=ret.split("\n");
+            if (ret.length > 1) {
+               delete_rows("tab_rtmeas");
+               for (i = ret.length-3; i < ret.length; i++){
+                  d=ret[i].split("|");
+                  if (d.length > 1) {
+                     console.log("Messaggio Vuoto");
+                     document.getElementById("message").innerHTML="No Messages";
+                     aggiungiRiga("tab_rtmeas",d);
+                  }
+                  else {
+                     if (d[0].length > 5 ){
+                        console.log("Messaggio : ",d[0]);
+                        document.getElementById("message").innerHTML=d[0];
+                     }
+                  }
+               }
+            }
+         }
+         document.getElementById("indicator").innerHTML=document.getElementById("indicator").innerHTML+"X";
+      }	
+   };
+   xhttp.open("GET", "rtdata.php", true);
+   xhttp.send();
+}
+
+function remote_check(flags){
+   flag=flags.split(" ");
+   for (var i=0;i<flag.length;i++){
+      
+   }
+   
+}
+function getdata (label) {
+   console.log("Getdata");
+   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+//      console.log(ret);
+         if (ret.length > 10) {
+            ret=ret.replace(/<br>/g,"");
+            ret=ret.split("\n");
+//            delete_rows("tab_rtmeas")
+            var ii=0;
+            for (i = 0; i < ret.length; i++){
+               d=ret[i].split("|");
+//               console.log(d[0].includes(label));
+               if ((d.length > 1) && (d[0].includes(label))) {
+                  var j=Math.floor(i/2)
+                  vect[j]=d[1];
+                  vect_med[j]=d[2];
+                  vect_max[j]=d[3];
+                  vect_min[j]=d[4];
+                  lab[j]=d[0].split("-")[0];
+               }
+            }
+         }
+//            console.log(label,vect)
+         new_trend(label);
+      }	
+   };
+   xhttp.open("GET", "rtdata.php", true);
+   xhttp.send();
+}
+
+function get_hosts () {
+   console.log("GetHosts");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         ret=ret.split("\n");
+         var table = document.getElementById("hosts");
+         var tbody = table.getElementsByTagName('tbody')[0];
+//         var tr = document.createElement('tr');
+         for (i=0;i<ret.length;i++){
+            if (ret[i].length > 1) {
+               var tr = document.createElement('tr');
+               var td = document.createElement('td');
+               var tx = document.createTextNode(ret[i].split(",")[0]);
+               td.appendChild(tx);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               tx = document.createTextNode(ret[i].split(",")[1]);
+               td.appendChild(tx);
+               tr.appendChild(td)
+               td = document.createElement("td");
+               hostdb[i]=ret[i].split(",")[0];
+               td.id=ret[i].split(",")[0];
+               tx = document.createTextNode("YES");
+               td.appendChild(tx);
+               tr.appendChild(td)
+            }
+//            tr.appendChild(td);
+            tbody.appendChild(tr); 
+         }
+       }
+   };
+   xhttp.open("GET", "host.php", true);
+   xhttp.send();
+}
+function get_sensor_status () {
+//   console.log("Sensor Status");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+//         console.log(ret);
+         ret=ret.split(" ");
+         delete_rows("sensor");
+         var flag=0;
+         var table = document.getElementById("sensor");
+         var tbody = table.getElementsByTagName('tbody')[0];
+//         var tr = document.createElement('tr');
+         var tr = document.createElement('tr');
+         for (i=0;i<ret.length;i++){
+            if (ret[i].length > 1) {
+               var td = document.createElement('td');
+               var tx = document.createTextNode(ret[i]);
+               if (ret[i]=="PAUSE") {
+                     if (ret[i] != actual_status){
+                        diff=-5;
+                     }
+                     diff=diff+5;
+                     td.style.color="red";
+                     img.setAttribute("src", "pause.jpeg");
+                     tr.appendChild(img);
+                     actual_status=ret[i];
+               }
+               if (ret[i]=="PRE_RUNNING") {
+                     if (ret[i] != actual_status){
+                        diff=-5;
+                     }
+                     diff=diff+5;
+                     td.style.color="orange";
+                     img.setAttribute("src", "prerunning.jpeg");
+                     tr.appendChild(img);
+                     actual_status=ret[i];
+               }
+               if (ret[i]=="RUNNING") {
+                     if (ret[i] != actual_status){
+                        diff=-5;
+                     }
+                     diff=diff+5;
+                     td.style.color="green";
+                     img.setAttribute("src", "running.jpeg");
+                     tr.appendChild(img);
+                     actual_status=ret[i];
+               }
+               if (i==3){
+                    tx.nodeValue=ret[i]-diff;
+               }
+
+               td.appendChild(tx);
+            }
+            tr.appendChild(td);
+            tbody.appendChild(tr); 
+         }
+             check_process();
+             document.getElementById("indicator").innerHTML=document.getElementById("indicator").innerHTML+"O";
+
+       }
+   };
+   xhttp.open("GET", "sensor.php", true);
+   xhttp.send();
+}
+function aggiungiRiga(id_table,elements){
+     var table = document.getElementById(id_table);
+     var tbody = table.getElementsByTagName('tbody')[0];
+     var colonne = table.getElementsByTagName('th').length; 
+     var tr = document.createElement('tr');
+     var lbl="";
+     console.log("Elements=",elements);
+     for(var i=0; i < colonne-3; i++){
+          var td = document.createElement('td');
+          if (i==0){
+            e=elements[i].replace("-"," ");
+            e=e.split(" ");
+            //console.log(e);
+            var tx = document.createTextNode(e[1]);
+            td.appendChild(tx);
+            tr.appendChild(td);
+            td = document.createElement('td');
+            tx=document.createTextNode(e[0]);
+            td.appendChild(tx);
+            tr.appendChild(td);
+            td = document.createElement('td');
+            tx=document.createTextNode(e[2]);
+            td.appendChild(tx);
+            tr.appendChild(td);
+            lbl=e[2];
+            }
+            else{
+            var tx = document.createTextNode(elements[i]);
+            td.appendChild(tx);
+            tr.appendChild(td);
+          }
+     }
+     td = document.createElement('td');
+     tx=document.createTextNode("ug/cm3");
+     td.appendChild(tx);
+     tr.appendChild(td);
+     td = document.createElement('td');
+     btn = document.createElement("button");
+     t = document.createTextNode("Track");
+     btn.appendChild(t);
+     btn.onclick= function (){getdata(lbl);}
+     td.appendChild(btn);
+     tr.appendChild(td);
+     tbody.appendChild(tr);
+     if (label_on == lbl){
+      if (elements[0].split("-")[0] != lab[lab.length-1]){
+         update_value(elements[1],elements[2],elements[3],elements[4],elements[0].split("-")[0]);
+      }
+     }
+     update_host(elements[5]);
+//     remote_check(elements[5]);
+}
+function get_version() {
+   console.log("Version");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("version").innerHTML=ret;
+       }
+   };
+   xhttp.open("GET", "version.php", true);
+   xhttp.send();
+}
+function get_config() {
+   console.log("Config");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("nome").innerHTML=ret.split(",")[0];
+         document.getElementById("equazionePM10").innerHTML=ret.split(",")[1];
+         document.getElementById("equazionePM25").innerHTML=ret.split(",")[2];
+       }
+   };
+   xhttp.open("GET", "config.php", true);
+   xhttp.send();
+}
+function update_host(e){
+   console.log("Update Hosts");
+   c=e.split(" ");
+//   console.log(c.length);
+   for (var i=0; i < c.length;i++){
+     var h=document.getElementById(hostdb[i]);
+         h.style.fontWeight="bold";
+      if (c[i] == "I"){ 
+         h.style.color="green";
+         h.style.background="lightgreen";
+         h.innerHTML="YES";
+      }
+      else {
+         h.style.background="yellow";
+         h.style.color="red";
+         h.innerHTML="NO";
+      }
+   }
+}
+
+function check_process(){
+//  console.log("Check Process");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+//         console.log(ret);
+         document.getElementById("process").innerHTML=ret;
+         process_status=ret;
+       }
+   };
+   xhttp.open("GET", "process.php", true);
+   xhttp.send();
+}
+
+function get_wifi(){
+//  console.log("Check Process");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         ret=ret.split("\n");
+         console.log(ret);
+         update_wifi(ret[4],ret[5]);
+         document.getElementById("ssid").innerHTML=ret[1]+" "+"Chan:"+ret[2]+" bitrate:"+ret[3]+" Mb/s"+"<br>signal:"+ret[6];
+       }
+   };
+   xhttp.open("GET", "wifi.php", true);
+   xhttp.send();
+}
+
+
+
+function start(){
+}
+
+function stop(){
+  console.log("Stop Process");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("results").innerHTML=ret;
+         process_status=ret;
+       }
+   };
+   xhttp.open("GET", "start_stop.php?op=stop", true);
+   xhttp.send();
+
+}
+
+function start(){
+  console.log("Stop Process");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("results").innerHTML=ret;
+         process_status=ret;
+       }
+   };
+   xhttp.open("GET", "start_stop.php?op=start", true);
+   xhttp.send();
+
+}
+function run_evidence(){
+//    console.log(process_status);
+    if (process_status.includes("RUNNING")){
+        var r=document.getElementById("indicator").innerHTML;
+        document.getElementById("indicator").style.color= "#009900";
+        if (r.length <= 10) {
+            r=r+"°";
+        }
+        else {
+            r="°";
+        }
+        document.getElementById("indicator").innerHTML=r;
+    }
+    else {document.getElementById("indicator").innerHTML="#"}
+}
+function delete_rows(id_table){
+	rowCount = document.getElementById(id_table).rows.length;
+	if (rowCount > 1) {
+		for (i=1;i < rowCount;i++){
+			document.getElementById(id_table).deleteRow(1);
+		}
+	}
+}
+
+function refresh_log(){
+   console.log("refresh_log");
+   document.getElementById('log').contentWindow.location.reload(true);
+}
+
+function init(){
+   get_hosts();
+   refresh();
+   get_sensor_status();
+   get_version();
+   check_process();
+   wifi_trend();
+}
+hostdb=[];
+setInterval(get_wifi, 5000);
+setInterval(refresh, 60000);
+setInterval(refresh_log, 60000);
+setInterval(get_sensor_status, 5000);
+setInterval(run_evidence,1000);
+</script>
+<BODY bgcolor="#FFFFFF" onLoad="init()" onkeydown="checkkey(event.which)">
+<table boreder="1"><table  width="80%" border="1" cellspacing="0" cellpadding="0" align="center">
+<th width="30%" align="center" id="diario">
+<p>Diario di Bordo</p>
+<iframe id="log" src="datalog.php" width="600" height="200"></iframe>
+</th>
+<th id="titolo"><h1>Control Panel<br><p id="nome"></p></h1><p id="version"></p>
+<form action='index.php'><input type="submit" value="Config Menu" /></form>
+<form action='scatter.html'><input type="submit" value="Calibration" /></form>
+<form action='http://94.177.187.133/panel'><input type="submit" value="Return to Switch" /></form></th>
+<th width="25%" align="center" id="wifi">
+<table>
+<tr><p id="ssid"></p></tr>
+<tr><canvas id="wifitrend" style="width: 50%; height: 50%; 
+      position: relative; vert-align: middle; -webkit-align-self:center">
+</canvas></tr></table></th>
+</table>
+<table id ="tab_rtmeas" width="80%" border="1" cellspacing="0" cellpadding="0" align="center">
+<!--<th width="5%" align="center">ID code</th>
+<th width="10%" align="center">Sensor Type</th>-->
+<th id="misure" width="15%" align="center">Data</th>
+<th id="misure" width="20%" align="center">Time</th>
+<th id="misure" width="15%" align="center">Nome</th>
+<th id="misure" width="10%" align="center">Valore</th>
+<th id="misure" width="10%" align="center">Valore Medio<br>Orario</th>
+<th id="misure" width="10%" align="center">Valore Max<br>Giornaliero</th>
+<th id="misure" width="10%" align="center">Valore Min<br>Giornaliero</th>
+<th id="misure" width="10%" align="center">Unità</th>
+</table>
+<table width="80%" border="1" cellspacing="0" cellpadding="0" align="center">
+<tr><td>
+<!--<div style="width:90%;" align="center">
+<canvas id="trend"  style="border:1px solid #000000;">-->
+<canvas id="trend" style="width: 50%; height: 50%; 
+		position: relative; vert-align: middle; -webkit-align-self:center">
+</canvas>
+</td></tr></table>
+<script>
+graph_on();
+graph_wifi_on();
+</script>
+<table id="equazioni" width="80%" border="1" cellspacing="0" cellpadding="0" align="center" >
+<th  width="50%" align="center">Correzione PM10 (Operativa)<br>(STOP/START se diversa da quella di ConfigMenu)<p id="equazionePM10"></p></th>
+<th  width="50%" align="center">Correzione PM2.5 (Operativa)<br>(STOP/START se diversa da quella di ConfigMenu)<p id="equazionePM25"></p></th>
+</table>
+<table id="hosts" width="80%" border="1" cellspacing="0" cellpadding="0" align="center">
+<th id="hosts_head" id="hosts_head" width="40%" align="center">Host</th>
+<th id="hosts_head" width="40%" align="center">DB Type</th>
+<th id="hosts_head" width="20%" align="center">Data Base Connection</th>
+</table>
+<table id="sensor" width="80%" border="1" cellspacing="0" cellpadding="0" align="center" >
+<th id="sensor_head" width="20%" align="center">Sensor</th>
+<th id="sensor_head" width="5%" align="center">Time</th>
+<th id="sensor_head" width="5%" align="center"></th>
+<th id="sensor_head" width="15%" align="center">Sensor<br>Status</th>
+<th id="sensor_head" width="15%" align="center">Count<br>Down (s)</th>
+<th id="sensor_head" width="20%" align="center">PM10<br>Raw Value</th>
+<th id="sensor_head" width="20%" align="center">PM2.5<br>Raw Value</th>
+</table>
+<table "messages" width="80%" border="1" cellspacing="0" cellpadding="0" align="center" >
+<th id="messages_head" width="10%" align="center"><p id="indicator"><h3></h3></p></th>
+<th id="messages_head" width="70%" align="center"><p id="message"></p></th>
+<th id="messages_head" width="20%" align="center"><p id="process"></p></th>
+</table>
+<table "commands" width="80%" border="1" cellspacing="0" cellpadding="0" align="center" >
+<th id="commands_head" width="10%" align="center"><p id="indicator"><button id="bstart" onclick="start()" >START</button></th>
+<th id="commands_head" width="80%" align="center"><p id="indicator"><p id ="results" ></p></th>
+<th id="commands_head" width="10%" align="center"><p id="indicator"><button id="bstop" onclick="stop()" >STOP</button></th></table></table>
+<script>
+get_config();
+</script>
+</BODY>
+</HTML>
+

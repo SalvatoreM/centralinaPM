@@ -1,0 +1,7 @@
+emailsend#no
+smtp#tuoamtp.server.it
+account#tua.email@provider.it
+passwd#cGFzc3dvcmQ=
+port#0
+sentfrom#tu.email@tuoprovider.it
+sendto#achivuoi@provider.it

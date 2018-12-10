@@ -1,1 +1,1 @@
-/home/pi/alfetta/connetti.sh miossid miapassword!
+/home/pi/alfetta/connetti.sh ZyXEL TrenoaVapore740!

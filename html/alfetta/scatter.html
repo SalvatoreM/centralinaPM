@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type"; content="text/html; charset=utf-8" /><TITLE>AutoCalibrazione</TITLE></meta>
+</HEAD>
+<style>
+table, th, td {
+    border: 1px solid black;
+    text-align :center;
+}
+#sensor_head {background-color:#e6ffff;}
+#hosts_head {background-color:#ffffcc;}
+#titolo {background-color:#ffd633;}
+#wifi {background-color:#ffd633;}
+#misure {background-color:#66cc99;}
+#commands {background-color:#cccc00;}
+#bstart {color:green;}
+#bstop {color:red;}
+#result {background-color:#66cc99;}
+#log {background-color:#e6ffff;}
+#diario {background-color:#ffd633;}
+</style>
+<script src="../chart/Chart.bundle.js"></script>
+<!--<script src="../chart/Chart.js"></script>-->
+<!--<script src="../chart/moment.js"></script>-->
+<script>
+//-----------------------------------------------------------------------
+function selstation() {
+   console.log("selstation");
+//   console.log( document.getElementById("campione").value);
+   var x = document.getElementById("pm").value;
+//   console.log(x);
+   if (x=="PM10") {
+//      console.log(x);
+      document.getElementById("campione").value="FI::Firenze-Test01";
+   }
+   else if (x=="PM2.5") {
+//      console.log(x);
+      document.getElementById("campione").value="firenze_qbitpm2.5";
+   }
+}
+//-----------------------------------------------------------------------
+function changecolor(){
+   document.getElementById("esito").innerHTML="Elaborazione in Corso";
+   if  (document.getElementById("result").style.backgroundColor == 'orange') {
+      document.getElementById("result").style.backgroundColor='yellow';
+   }
+   else {
+      document.getElementById("result").style.backgroundColor='orange';
+   }
+}
+//-----------------------------------------------------------------------
+function calcola(){
+   document.getElementById("calc").disabled = true;
+   console.log("calcola");
+   console.log( document.getElementById("campione").value);
+   console.log( document.getElementById("giorni").value);
+   console.log( document.getElementById("pm").value);
+   campione=document.getElementById("campione").value;
+   giorni=document.getElementById("giorni").value;
+   pm=document.getElementById("pm").value;
+   var id = setInterval(changecolor,250);
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         error=ret.split("\n")[0];
+         document.getElementById("esito").innerHTML="Esito : "+error;
+         clearInterval(id)
+         document.getElementById("result").style.backgroundColor='red';
+         document.getElementById("calc").disabled = false;
+         if (error.includes("OK")){
+            document.getElementById("result").style.backgroundColor='green';
+            distr=ret.split("\n")[1];
+            console.log(distr);
+            regr=ret.split("\n")[2];
+            console.log(regr);
+            console.log(ret.split("\n")[3]);
+            r2=JSON.parse(ret.split("\n")[3]);
+            reference = pm+" "+document.getElementById("nome").innerHTML+" Vs "+campione;
+            redraw_graph(scatterChart,distr,regr,reference);
+            document.getElementById("pendenza").innerHTML="Pendenza = "+r2.m;
+            document.getElementById("intercetta").innerHTML="Intercetta = "+r2.q;
+            document.getElementById("determinazione").innerHTML="Coefficiente di Determinazione (R2) = "+r2.r2;
+         }
+       }
+   };
+   console.log("calibration.php?strcmp="+campione+"&n_day="+giorni+"&pm="+pm);
+   xhttp.open("GET", "calibration.php?strcmp="+campione+"&n_day="+giorni+"&pm="+pm, true);
+   xhttp.send();
+}
+//-----------------------------------------------------------------------
+function get_config() {
+   console.log("Config");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("nome").innerHTML=ret.split(",")[0];
+//         document.getElementById("equazionePM10").innerHTML=ret.split(",")[1];
+//         document.getElementById("equazionePM25").innerHTML=ret.split(",")[2];
+       }
+   };
+   xhttp.open("GET", "config.php", true);
+   xhttp.send();
+}
+//-----------------------------------------------------------------------
+get_config();
+</script>
+<BODY bgcolor="#FFFFFF" >
+<table  width="70%" border="2" cellspacing="0" cellpadding="0" align="center">
+<th  id="titolo" colspan="2"><h1>Calibration Panel<p id="nome"></h1></p></th>
+<tr><td id="commands" style="width:50%;"><form action='index.php'><input type="submit" value="Config Menu" /></form></td>
+<td  id="commands"><form action='show.html'><input type="submit" value="Control Panel" /></form></td></tr>
+<tr><td colspan="2"><canvas  id="scatter" style="width:80%; height=30%;"></canvas></td></tr>
+<tr><td><canvas id="trend" style="width:80%; height=50%;"></canvas></td>
+<td><canvas id="spettro" style="width:80%; height=50%;"></canvas></td></tr>
+<tr><td colspan="2" id="result"><b><p id="esito"> Esito :</b></p></td></tr>
+<tr><td><b><p id="pendenza">Pendenza = xx.xx</p><p id="intercetta">Intercetta = yy.yy</p></b></td><td><b><p id="determinazione">Coefficiente di Determinazione (R2) = 0.W</p></b></td></tr>
+<tr><td id="commands"><select id="pm" onchange="selstation()"><option>PM10</option><option value="PM2.5">PM2.5</option></select> 
+<input id="campione" type="text" value="FI::Firenze-Test01" style="text-align:center;"/>
+<input type="number" id="giorni" min="0" max="7"  value="3" style="text-align:center;">Giorni<input id="calc" type="button" value="Calcola" onclick="calcola()"  /></td>
+<td id="commands">
+<input type="button" value="Update New Calibration Values" />
+<input id="reset" type="button" value="Reset to Unitary Calibration Values" />
+</td></tr>
+</table>
+</BODY>
+<script src="scatter.js"></script>
+<script>document.getElementById("reset").style.backgroundColor='red';</script>
+</HTML>
