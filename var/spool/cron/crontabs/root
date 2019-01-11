@@ -24,6 +24,6 @@
 # 
 # m h  dom mon dow   command
 #@reboot iw wlan0 set power_save off
-@reboot /home/pi/alfetta/sds011.py
+@reboot /home/pi/alfetta/centralina.py
 @hourly /home/pi/alfetta/tstforkeys.sh
 */5 * * * * /usr/bin/autohotspot >/dev/null 2>&1

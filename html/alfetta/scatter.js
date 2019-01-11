@@ -7,7 +7,7 @@ var ctz = document.getElementById('spettro');
 regressione=[];
 dispersione=[];
 var  spettro=[];
-spettro.length=20;
+spettro.length=21;
 spettro.fill(0);
 var testo="";
 var asse_tempo=[];
@@ -15,18 +15,19 @@ var trend1=[];
 var trend2=[];
 var staz1="";
 var staz2="";
+var exclude=[];
 //var titolo='{ display:true, text: "PM10 Distribution" } ';
 var scatterChart = new Chart(ctx, {
     type: 'line',
     data:{
       datasets:[
       {type: 'line',label:'Regressione Linenare',data:regressione,fill: "true",showline: "true",backgroundColor: "rgba(128, 128, 0, .3)", borderColor: "rgba(128, 128, 0, .3)" },
-      {type: 'bubble',label: testo,backgroundColor: "rgba(255,0,0, 0.15)",borderColor: "rgba(255,0,0, .7)",data:dispersione}
+      {type: 'bubble',label: testo,backgroundColor: "rgba(255,0,0, 0.15)",borderColor: "rgba(255,0,0, .7)",dataPoints:dispersione}
     ]},
-    options: {title: { display:true, text: "_____", fontSize: 20, position: 'bottom' }, scales: {xAxes:[{type: 'linear', position: 'bottom' }] }
+    options: {title: { display:true, text: "_____", fontSize: 20, position: 'bottom' }, scales: {xAxes:[{type: 'linear', position: 'bottom' }],events: ['clock'] }
    }
 });
-
+	
 var trendChart = new Chart(cty, {
     type: 'bar',
     data: {
@@ -54,7 +55,7 @@ var trendChart = new Chart(cty, {
 var spettroChart = new Chart(ctz, {
     type: 'bar',
     data: {
-      labels: ["0-10","10-20","20-30","30-40","40-50","50-60","60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160","160-170","170-180","180-190","190-200"],
+      labels: ["00-10","10-20","20-30","30-40","40-50","50-60","60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160","160-170","170-180","180-190","190-200","200>"],
       datasets: [
         {
           label:"Distribuzione Valori",
@@ -71,6 +72,9 @@ var spettroChart = new Chart(ctz, {
     }
 });
 
+function onClick(env,a){
+	consolle.log("Click");
+}
 function redraw_graph (chart,distr,regr,ref){
    chart.data.datasets[1].data=eval(distr);
    chart.data.datasets[0].data=eval("["+regr+"]");
@@ -79,23 +83,42 @@ function redraw_graph (chart,distr,regr,ref){
    chart.update(); 
    v=eval(distr);
    trend1=[];
-   trend2=[]; 
+   trend2=[];
+//   exclude=[];
    asse_tempo=[];
    spettro.fill(0);
    for (i = 0; i < v.length; i++){
-        console.log(v[i]);
+//        console.log(v[i]);
 	trend1.push(v[i].x);	
 	trend2.push(v[i].y);	
         asse_tempo.push(i);
-	if (v[i].x < 200){
-		console.log(parseInt(eval(v[i].x+"/10")));
+	if ((v[i].x < 200) && (v[i].r==3)){
+		n_valori=n_valori+1;
+//		console.log(parseInt(eval(v[i].x+"/10")));
 		spettro[parseInt(eval(v[i].x+"/10"))]=spettro[parseInt(eval(v[i].x+"/10"))]+1;
+		if (v[i].x < 50) {
+			bassa=bassa+1;
+		}
+		else if (v[i].x >= 50 && v[i].x <100) {
+			media=media+1;
+		}
+		else if (v[i].x >= 100 && v[i].x <200) {
+			alta=alta+1;
+		}
 	}
-	else {
+	else if (v[i].r == 1) {
+//		exclude.push(i);
+		trend1[i]=0;
+		trend2[i]=0;
+	}
+	else if ((v[i].x >= 200) && (v[i].r==3)) {
 		spettro[20]=spettro[20]+1;
+		over=over+1;
+		n_valori=n_valori+1;
 	}
    }
-   console.log(spettro);
+//   console.log(spettro);
+   console.log(exclude);
    trendChart.data.datasets[0].data=trend1;	
    trendChart.data.datasets[1].data=trend2;	 
    trendChart.data.datasets[0].label=ref.split(" ")[1];
@@ -105,3 +128,35 @@ function redraw_graph (chart,distr,regr,ref){
    spettroChart.data.datasets[0].data=spettro;
    spettroChart.update();
 }
+
+document.getElementById("scatter").onclick = function(evt){
+  var activePoints = scatterChart.getElementAtEvent(evt);
+//  console.log(activePoints[0]._datasetIndex);
+//  console.log(activePoints[0]._index);
+
+  // make sure click was on an actual point
+  if (activePoints.length > 0) {
+    var clickedDatasetIndex = activePoints[0]._datasetIndex;
+    var clickedElementindex = activePoints[0]._index;
+    var label = scatterChart.data.labels[clickedElementindex];
+    var x = scatterChart.data.datasets[clickedDatasetIndex].data[clickedElementindex].x;
+    var y = scatterChart.data.datasets[clickedDatasetIndex].data[clickedElementindex].y;
+    if ( !exclude.includes(clickedElementindex)){
+    	exclude.push(clickedElementindex);
+    	scatterChart.data.datasets[clickedDatasetIndex].data[clickedElementindex].r=1;
+    	trendChart.data.datasets[0].data[clickedElementindex]=0;
+    	trendChart.data.datasets[1].data[clickedElementindex]=0;
+    }
+    else {
+    	exclude.splice(exclude.indexOf(clickedElementindex),1);
+    	scatterChart.data.datasets[clickedDatasetIndex].data[clickedElementindex].r=3;
+    	trendChart.data.datasets[0].data[clickedElementindex]=x;
+    	trendChart.data.datasets[1].data[clickedElementindex]=y;
+    }
+//    console.log(exclude);
+    scatterChart.update(); 
+    trendChart.update();
+//    alert("Clicked: index: "+clickedElementindex + " x : "+x+" y: "+y);
+  }
+};
+

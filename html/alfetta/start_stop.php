@@ -7,7 +7,7 @@ if ($_GET["op"]=="stop") {
    $s='echo "'.$path.'sds_stop.sh" >/var/www/html/alfetta/comandi/comando.sh';
 }
 exec($s,$return);
-usleep(100000);
+usleep(200000);
 exec('cat /var/www/html/alfetta/result.log 2>&1',$r,$return);
 foreach ($r as $l){ echo $l;}
 ?>

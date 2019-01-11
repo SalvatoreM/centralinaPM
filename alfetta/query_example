@@ -1,1 +1,0 @@
-curl -H -XPOST http://salvatorhost.no-ip.org/db/write?db=ninuxaria&precision=ms --data-binary aria,node=Firenze::Lippi pm10=15.14,pm25=8.03    1486675327227

@@ -21,11 +21,14 @@ table, th, td {
 #diario {background-color:#ffd633;}
 </style>
 <script src="../chart/Chart.bundle.js"></script>
+<script src="functions.js"></script>
 <!--<script src="../chart/Chart.js"></script>-->
 <!--<script src="../chart/moment.js"></script>-->
 <script>
 //-----------------------------------------------------------------------
 function selstation() {
+   document.getElementById("ricalc").disabled = true;
+   document.getElementById("calregister").disabled = true;
    console.log("selstation");
 //   console.log( document.getElementById("campione").value);
    var x = document.getElementById("pm").value;
@@ -50,15 +53,39 @@ function changecolor(){
    }
 }
 //-----------------------------------------------------------------------
+
+
 function calcola(){
    document.getElementById("calc").disabled = true;
    console.log("calcola");
-   console.log( document.getElementById("campione").value);
-   console.log( document.getElementById("giorni").value);
-   console.log( document.getElementById("pm").value);
+//   console.log( document.getElementById("campione").value);
+//   console.log( document.getElementById("giorni").value);
+//   console.log( document.getElementById("pm").value);
+   days_to_last_calibration();
+   console.log("last PM10 : "+eval(last_pm10-1));
+   console.log("last PM2.5 : "+eval(last_pm25-1));
    campione=document.getElementById("campione").value;
    giorni=document.getElementById("giorni").value;
    pm=document.getElementById("pm").value;
+   if (pm == "PM10"){
+	if (eval(last_pm10-1) <= giorni){
+         	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
+        	document.getElementById("result").style.backgroundColor='red';
+         	document.getElementById("calc").disabled = false;
+		return;
+	}
+   }
+   if (pm == "PM2.5"){
+	if (eval(last_pm25-1) <= giorni){
+         	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
+         	document.getElementById("result").style.backgroundColor='red';
+         	document.getElementById("calc").disabled = false;
+		return;
+	}
+   }
+   measure=pm;
+   n_giorni=giorni;
+   StrumentoCampione=campione;
    var id = setInterval(changecolor,250);
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function() {
@@ -70,7 +97,9 @@ function calcola(){
          clearInterval(id)
          document.getElementById("result").style.backgroundColor='red';
          document.getElementById("calc").disabled = false;
+   	 document.getElementById("ricalc").disabled = false;
          if (error.includes("OK")){
+   	    document.getElementById("calregister").disabled = false;
             document.getElementById("result").style.backgroundColor='green';
             distr=ret.split("\n")[1];
             console.log(distr);
@@ -79,10 +108,13 @@ function calcola(){
             console.log(ret.split("\n")[3]);
             r2=JSON.parse(ret.split("\n")[3]);
             reference = pm+" "+document.getElementById("nome").innerHTML+" Vs "+campione;
+//            reference = pm+" "+campione+" Vs "+document.getElementById("nome").innerHTML;
+	    exclude=[]
             redraw_graph(scatterChart,distr,regr,reference);
             document.getElementById("pendenza").innerHTML="Pendenza = "+r2.m;
             document.getElementById("intercetta").innerHTML="Intercetta = "+r2.q;
             document.getElementById("determinazione").innerHTML="Coefficiente di Determinazione (R2) = "+r2.r2;
+            rr2 = r2.r2;
          }
        }
    };
@@ -91,6 +123,76 @@ function calcola(){
    xhttp.send();
 }
 //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+function ricalcola(){
+   document.getElementById("ricalc").disabled = true;
+   console.log("ricalcola");
+//   console.log( document.getElementById("campione").value);
+//   console.log( document.getElementById("giorni").value);
+//   console.log( document.getElementById("pm").value);
+   campione=document.getElementById("campione").value;
+   giorni=document.getElementById("giorni").value;
+   pm=document.getElementById("pm").value;
+   if (pm == "PM10"){
+	if (eval(last_pm10-1) <= giorni){
+         	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
+        	document.getElementById("result").style.backgroundColor='red';
+		return;
+	}
+   }
+   if (pm == "PM2.5"){
+	if (eval(last_pm25-1) <= giorni){
+         	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
+         	document.getElementById("result").style.backgroundColor='red';
+		return;
+	}
+   }
+   measure=pm;
+   n_giorni=giorni;
+   StrumentoCampione=campione;
+   var id = setInterval(changecolor,250);
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         error=ret.split("\n")[0];
+         document.getElementById("esito").innerHTML="Esito : "+error;
+         clearInterval(id)
+         document.getElementById("result").style.backgroundColor='red';
+         document.getElementById("ricalc").disabled = false;
+         if (error.includes("OK")){
+   	    document.getElementById("calregister").disabled = false;
+            document.getElementById("result").style.backgroundColor='green';
+            distr=ret.split("\n")[1];
+            console.log(distr);
+            regr=ret.split("\n")[2];
+            console.log(regr);
+            console.log(ret.split("\n")[3]);
+            r2=JSON.parse(ret.split("\n")[3]);
+            reference = pm+" "+document.getElementById("nome").innerHTML+" Vs "+campione;
+//            reference = pm+" "+campione+" Vs "+document.getElementById("nome").innerHTML;
+            redraw_graph(scatterChart,distr,regr,reference);
+            document.getElementById("pendenza").innerHTML="Pendenza = "+r2.m;
+            document.getElementById("intercetta").innerHTML="Intercetta = "+r2.q;
+            document.getElementById("determinazione").innerHTML="Coefficiente di Determinazione (R2) = "+r2.r2;
+            rr2 = r2.r2;
+         }
+       }
+   };
+   console.log("recalibration.php?pm="+pm+"&exclude=["+exclude+"]");
+   xhttp.open("GET", "recalibration.php?pm="+pm+"&exclude=["+exclude+"]", true);
+   xhttp.send();
+}
+//-----------------------------------------------------------------------
+function disable_ricalc(){
+   document.getElementById("ricalc").disabled = true;
+   document.getElementById("calregister").disabled = true;
+}
+function disable_register_calibration(){
+   document.getElementById("calregister").disabled = true;
+}
+
 function get_config() {
    console.log("Config");
 //   lab=[];
@@ -102,33 +204,167 @@ function get_config() {
          document.getElementById("nome").innerHTML=ret.split(",")[0];
 //         document.getElementById("equazionePM10").innerHTML=ret.split(",")[1];
 //         document.getElementById("equazionePM25").innerHTML=ret.split(",")[2];
+	 equazionepm10=ret.split(",")[1];
+	 m25=ret.split(",")[2].split("+")[1].split(" ")[1];
+	 q25=ret.split(",")[2].split("+")[2].split(" ")[1];
+	 m10=ret.split(",")[1].split("+")[1].split(" ")[1];
+	 q10=ret.split(",")[1].split("+")[2].split(" ")[1];
        }
    };
    xhttp.open("GET", "config.php", true);
    xhttp.send();
 }
 //-----------------------------------------------------------------------
+function calregister(){
+/*        var code = prompt("Please enter Password:", "");
+        code = String(md5(md5(code)));
+        console.log(code);
+       	if (code !==  '186C64CE158FA8BCD888D5477F7B5DD4'){
+       		alert("Impossibile Registrare la Calibrazione\n Chiedi a Responsabili del Progetto Cheariatira");
+       		return;
+
+        }*/
+	var _0x84f2=["\x50\x6C\x65\x61\x73\x65\x20\x65\x6E\x74\x65\x72\x20\x50\x61\x73\x73\x77\x6F\x72\x64\x3A","",
+	"\x6C\x6F\x67","\x31\x38\x36\x43\x36\x34\x43\x45\x31\x35\x38\x46\x41\x38\x42\x43\x44\x38\x38\x38\x44\x35\x34\x37\x37\x46\x37\x42\x35\x44\x44\x34",
+	"\x49\x6D\x70\x6F\x73\x73\x69\x62\x69\x6C\x65\x20\x52\x65\x67\x69\x73\x74\x72\x61\x72\x65\x20\x6C\x61\x20\x43\x61\x6C\x69\x62\x72\x61\x7A\x69\x6F\x6E\x65\x0A\x20\x43\x68\x69\x65\x64\x69\x20\x61\x20\x52\x65\x73\x70\x6F\x6E\x73\x61\x62\x69\x6C\x69\x20\x64\x65\x6C\x20\x50\x72\x6F\x67\x65\x74\x74\x6F\x20\x43\x68\x65\x61\x72\x69\x61\x74\x69\x72\x61"];
+   var code = prompt(_0x84f2[0],_0x84f2[1]);
+   code = String(md5(md5(code)));
+	if(code !== _0x84f2[3]){alert(_0x84f2[4]);return}
+	m=eval(r2.m);
+	q=eval(r2.q);
+	console.log("Data:"+oggi);
+        console.log("Misura : "+measure);
+	console.log("m2.5="+m25);
+	console.log("q2.5="+q25);
+	console.log("m10="+m10);
+	console.log("q10="+q10);
+        console.log("StrumentoCampione="+StrumentoCampione);
+        console.log("rr2="+rr2);
+	console.log("n_giorni="+n_giorni);
+        console.log("m="+m);
+	console.log("q="+q);
+	if (measure == "PM10"){
+		new_m=eval(m*m10).toFixed(2);
+		new_q=eval(m*q10+q).toFixed(2);
+	}
+	if (measure == "PM2.5") {
+		new_m=eval(m*m25).toFixed(2);
+		new_q=eval(m*q25+q).toFixed(2);
+//		new_q=eval(m*q10+q).toFixed(2);
+//        	new_m=eval(m*m25).toFixed(2);
+	}
+        console.log("new_m="+new_m);
+        console.log("new_q="+new_q);
+        new_cal={short:oggi_short, data: oggi+"<br>"+StrumentoCampione, measure : measure, original_m:m,original_q: q,r2: rr2,m: new_m,q: new_q,giorni: n_giorni,n_valori: n_valori,bassa: bassa,media: media,alta: alta,over: over};
+        console.log(new_cal);
+	console.log(JSON.stringify(new_cal));
+	historytable.calibration.push(new_cal);
+	console.log(historytable);	
+// Viene inviato la nuova History Calibration Table
+// Sending and receiving data in JSON format using POST method
+//
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "updatehistory.php", true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.onreadystatechange = function () {
+    		if (xhr.readyState === 4 && xhr.status === 200) {
+        		console.log(xhr.responseText);
+        		alert("Calibrazione Eseguita");
+
+    		}
+	};
+var data = JSON.stringify(historytable);
+xhr.send(data);
+}
+//------------------------------------------------------------------------------
+function get_historytable(){
+  console.log("get_historytable");
+  var xmlhttp = new XMLHttpRequest();
+//  dbParam = JSON.stringify(obj);
+  xmlhttp.onreadystatechange = function() {
+     if (this.readyState == 4 && this.status == 200) {
+        historytable= JSON.parse(this.responseText);
+        console.log(historytable);
+    }
+};
+xmlhttp.open("GET", "caltable.json", true);
+xmlhttp.send();
+}
+//-----------------------------------------------------------------------
+function days_to_last_calibration(){
+      	console.log("days_to_last_calibration");
+        for (x in historytable.calibration) {
+           	console.log(historytable.calibration[x]);
+		date1 = new Date(oggi_short);
+        	date2 = new Date( historytable.calibration[x].short);
+		diffDays = parseInt((date1 - date2) / (1000 * 60 * 60 * 24));
+		console.log(diffDays);	
+		console.log(historytable.calibration[x].measure);	
+	 	if (historytable.calibration[x].measure == "PM10"){
+                        console.log("measure == PM10");
+			if  (last_pm10 > diffDays){last_pm10=diffDays}
+		}
+		else if (historytable.calibration[x].measure == "PM2.5"){
+                        console.log("measure == PM2.5");
+			if  (last_pm25 > diffDays){last_pm25=diffDays}
+		}
+        }
+
+}
+//-----------------------------------------------------------------------
+var d = new Date();
+oggi=('0'+d.getDate()).slice(-2)+"/"+('0'+eval(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear();
+oggi_short=('0'+eval(d.getMonth()+1)).slice(-2)+"/"+('0'+d.getDate()).slice(-2)+"/"+d.getFullYear();
+var StrumentoCampione="";
+var m25="";
+var q25="";
+var m10="";
+var q10="";
+var rr2="";
+var m="";
+var q="";
+var measure="";
+var n_giorni=0;
+var n_valori=0;
+var bassa=0;
+var media=0;
+var alta=0;
+var over=0;
+var historytable="";
+var last_pm10=2000;
+var last_pm25=2000;
 get_config();
+get_historytable();
+//days_to_last_calibration();
 </script>
 <BODY bgcolor="#FFFFFF" >
 <table  width="70%" border="2" cellspacing="0" cellpadding="0" align="center">
-<th  id="titolo" colspan="2"><h1>Calibration Panel<p id="nome"></h1></p></th>
-<tr><td id="commands" style="width:50%;"><form action='index.php'><input type="submit" value="Config Menu" /></form></td>
+<th  id="titolo" colspan="3"><h1>Calibration Panel<p id="nome"></h1></p></th>
+<tr><td id="commands" style="width:30%;"><form action='index.php'><input type="submit" value="Config Menu" /></form></td>
+<td id="commands" style="width:30%;"><form action='caltable.html'><input type="submit" value="Calibration History" /></form></td>
 <td  id="commands"><form action='show.html'><input type="submit" value="Control Panel" /></form></td></tr>
-<tr><td colspan="2"><canvas  id="scatter" style="width:80%; height=30%;"></canvas></td></tr>
-<tr><td><canvas id="trend" style="width:80%; height=50%;"></canvas></td>
-<td><canvas id="spettro" style="width:80%; height=50%;"></canvas></td></tr>
-<tr><td colspan="2" id="result"><b><p id="esito"> Esito :</b></p></td></tr>
-<tr><td><b><p id="pendenza">Pendenza = xx.xx</p><p id="intercetta">Intercetta = yy.yy</p></b></td><td><b><p id="determinazione">Coefficiente di Determinazione (R2) = 0.W</p></b></td></tr>
-<tr><td id="commands"><select id="pm" onchange="selstation()"><option>PM10</option><option value="PM2.5">PM2.5</option></select> 
-<input id="campione" type="text" value="FI::Firenze-Test01" style="text-align:center;"/>
-<input type="number" id="giorni" min="0" max="7"  value="3" style="text-align:center;">Giorni<input id="calc" type="button" value="Calcola" onclick="calcola()"  /></td>
+<tr><td colspan="3"><canvas  id="scatter" style="width:80%; height:50%;"></canvas></td></tr>
+<tr><td colspan="2"><canvas id="trend" style="width:80%; height:50%;"></canvas></td>
+<td><canvas id="spettro" style="width:80%; height:50%;"></canvas></td></tr>
+<tr><td colspan="3" id="result"><b><p id="esito"> Esito :</b></p></td></tr>
+<tr><td colspan="2"><b><p id="pendenza">Pendenza = xx.xx</p><p id="intercetta">Intercetta = yy.yy</p></b></td><td><b><p id="determinazione">Coefficiente di Determinazione (R2) = 0.W</p></b></td></tr>
+<tr><td colspan="2" id="commands"><select id="pm" onchange="selstation()"><option>PM10</option><option value="PM2.5">PM2.5</option></select> 
+<input id="campione"  onchange="disable_ricalc()" type="text" value="FI::Firenze-Test01" style="text-align:center;"/>
+<input type="number" id="giorni" onchange="disable_ricalc()" min="0" max="10"  value="3" style="text-align:center;">Giorni<input id="calc" type="button" value="Calcola" onclick="calcola()"  />
+<input id="ricalc" type="button" value="Ricalcola" onclick="ricalcola()"  disabled/></td>
 <td id="commands">
-<input type="button" value="Update New Calibration Values" />
-<input id="reset" type="button" value="Reset to Unitary Calibration Values" />
+<input id="calregister" type="button" onclick="calregister()" value="Register Calibration Values" />
+<!--<input id="reset" type="button" value="Reset to Unitary Calibration Values" />-->
 </td></tr>
 </table>
 </BODY>
 <script src="scatter.js"></script>
-<script>document.getElementById("reset").style.backgroundColor='red';</script>
+<script>
+//document.getElementById("reset").style.backgroundColor='red';
+disable_ricalc();
+disable_register_calibration();
+days_to_last_calibration();
+console.log("last PM10 : "+last_pm10);
+console.log("last PM2.5 : "+last_pm25);
+</script>
 </HTML>

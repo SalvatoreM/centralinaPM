@@ -221,7 +221,6 @@ class logger():
         self.pm10max=0
         self.pm10min=2000
         if (time.strftime("%y") != self.year):
-#        if (time.strftime("%d%m") =="0101"):
             self.pm10_over=0
             self.pm10_over_OMS=0
         self.pm25_day=0
@@ -230,7 +229,6 @@ class logger():
         self.pm25min=2000
         if (time.strftime("%y") != self.year):
             self.year=time.strftime("%y")
-#        if (time.strftime("%d%m") =="0101"):
             self.pm25_over=0
             self.pm25_over_OMS=0
 #---------------------------------------------------------------------------------
@@ -269,300 +267,6 @@ class logger():
             print ("Anno ",self.year)
 
 #============================================================================
-#---------------------------------------------------------------------------------
-class sds011_sensor():
-
-# "DATASHEET": http://cl.ly/ekot
- 
-    DEBUG = 0
-    CMD_MODE = 2
-    CMD_QUERY_DATA = 4
-    CMD_DEVICE_ID = 5
-    CMD_SLEEP = 6
-    CMD_FIRMWARE = 7
-    CMD_WORKING_PERIOD = 8
-    MODE_ACTIVE = 0
-    MODE_QUERY = 1
-    
-    def __init__ (self,dev):
-        self.ser = serial.Serial()
-        self.ser.port = dev
-        self.ser.baudrate = 9600
-        self.ser.open()
-        self.ser.flushInput()
-        self.byte, data = 0, ""
-        self.pm10=0
-        self.pm25=0
-        self.pm10kk=0
-        self.pm10k=1
-        self.pm10q=0
-        self.pm25kk=0
-        self.pm25k=1
-        self.pm25q=0
-        self.pm10_acc=0
-        self.pm25_acc=0
-        self.pm10_act=0
-        self.pm25_act=0
-#la somma dei due paratri seguenti deve essere sempre = 6
-        self.runtime=5    # 1-6 minuti   (1 2 3 4 5)
-        self.sleeptime=1    # 0-5 minuti   (4 3 2 1 0)
-        self.Ton=self.runtime
-#-----------------------------------------------------------
-        self.samples=60              # Numero di campioni per media default
-        self.Toff=self.sleeptime * 60                 # tempo di pausa Laser OFF Ventola OFF default
-        self.sync=0
-        self.pm10_acc=0
-        self.pm25_acc=0
-        self.sample_number=0
-        self.estop=threading.Event()
-        self.sensor_on=threading.Thread(target=self.__ciclo)
-        self.lock=threading.Lock()
-        time.sleep(1)
-        self.sensor_on.start()
-        self.status="PAUSE"
-        self.run=True
-
-    def get_status(self):
-        return(self.status)
-
-    def set_pm10_calibration (self,kk,k,q):
-        self.pm10kk=float(kk)
-        self.pm10k=float(k)
-        self.pm10q=float(q)
-
-    def set_pm25_calibration (self,kk,k,q):
-        self.pm25kk=float(kk)
-        self.pm25k=float(k)
-        self.pm25q=float(q)
-
-    def autocalibration(self,isgnum,frame):
-        log.event (time.strftime("%H:%M-%a-%b-%d-%Y")+"Aggiornamento Parametri di Calibrazione\n")
-        basepath="/home/pi/alfetta/"
-        configurazione=read_conf(basepath+"etc/alfetta.conf")
-        log.event(time.strftime("%H:%M-%a-%b-%d-%Y")+"PM2.5 ",configurazione["kk2"],configurazione["k2"],configurazione["q2"])
-        log.event(time.strftime("%H:%M-%a-%b-%d-%Y")+"PM10 ",configurazione["kk1"],configurazione["k1"],configurazione["q1"])
-        self.set_pm10_calibration(configurazione["kk1"],configurazione["k1"],configurazione["q1"])
-        self.set_pm25_calibration(configurazione["kk2"],configurazione["k2"],configurazione["q2"])
-        b='echo "nome=%s\nkk1=%s\nk1=%s\nq1=%s" > /var/www/html/alfetta/correction.conf' %(configurazione["nome"],configurazione["kk1"],configurazione["k1"],configurazione["q1"])
-        os.system(b)
-        b='echo "kk2=%s\nk2=%s\nq2=%s" >> /var/www/html/alfetta/correction.conf' %(configurazione["kk2"],configurazione["k2"],configurazione["q2"])
-        os.system(b)
-
-    def set_cicletime(self,runtime):
-        if runtime > 5 :
-            self.runtime=5
-        elif runtime < 1 :
-            self.runtime=1
-#-----------------------------------------------------------
-#la somma dei due parametri seguenti deve essere sempre = 6
-#-----------------------------------------------------------
-        else :
-            self.runtime=runtime             # 1-6 minuti   (1 2 3 4 5) tempo di acquisione misure
-        self.sleeptime=(5 - self.runtime)    # 0-5 minuti   (4 3 2 1 0) tempo di pausa (Laser OFF Fan OFF)
-#-----------------------------------------------------------
-        self.samples=60                      # Numero di campioni per media default
-        self.Toff=self.sleeptime * 60        # tempo di pausa Laser OFF Ventola OFF default
-	self.Ton=self.runtime
-
-    def get_runtime(self):
-        return(self.runtime)
-
-    def get_sleeptime(self):
-        return(5-self.runtime)
-
-    def switch_on(self):
-        cmd_setsleep(0)
-        time.sleep(3)
-
-    def switch_off(self):
-        cmd_setsleep(1)
-        time.sleep(3)
-
-    def dump(self,d, prefix=''):
-        print(prefix + ' '.join(x.encode('hex') for x in d))
- 
-    def construct_command(self,cmd, data=[]):
-        assert len(data) <= 12
-        data += [0,]*(12-len(data))
-        checksum = (sum(data)+cmd-2)%256
-        ret = "\xaa\xb4" + chr(cmd)
-        ret += ''.join(chr(x) for x in data)
-        ret += "\xff\xff" + chr(checksum) + "\xab"
-        if self.DEBUG:
-            self.dump(ret, 'Tx: ')
-        return ret
- 
-    def process_data(self,d):
-        r = struct.unpack('<HHxxBB', d[2:])
-        checksum = sum(ord(v) for v in d[2:8])%256
-        if (checksum==r[2] and r[3]==0xab):
-            self.pm25 = r[0]/10.0
-            self.pm10 = r[1]/10.0
-        else:
-            self.pm10=0
-            self.pm25=0
-        
-    def process_version(self,d):
-        r = struct.unpack('<BBBHBB', d[3:])
-        checksum = sum(ord(v) for v in d[2:8])%256
- 
-    def read_response(self):
-        byte = 0
-        while byte != "\xaa":
-            byte = self.ser.read(size=1)
-        d = self.ser.read(size=9)
-        if self.DEBUG:
-            self.dump(d, 'Rx: ')
-        return byte + d
- 
-    def cmd_set_mode(self,mode=MODE_QUERY):
-        self.ser.write(self.construct_command(self.CMD_MODE, [0x1, mode]))
-        self.read_response()
-
-
-    def test_query_mode(self):
-        self.ser.write(self.construct_command(self.CMD_MODE, [0x0, 0x0]))
-        d=self.read_response()
-        if d[2].encode("hex") == "\x02".encode("hex") :
-                if d[4].encode("hex") == "\x01".encode("hex") :
-                  return(1) # query mode : Sensor received query data command to report a measurement data.
-        else:
-                return (0) #active mode ：Sensor automatically reports a measurement data in a work period.
- 
-    def cmd_query_data(self):
-        self.ser.write(self.construct_command(self.CMD_QUERY_DATA))
-        d = self.read_response()
-        if d[1].encode("hex") == "\xc0".encode("hex"):
-            self.process_data(d)
-        else:
-            self.pm10=0
-            self.pm25=0
- 
-    def cmd_set_sleep(self,sleep=1):
-        mode = 0 if sleep else 1
-        self.ser.write(self.construct_command(self.CMD_SLEEP, [0x1, mode]))
-        self.read_response()
- 
-    def cmd_set_working_period(self,period):
-        self.ser.write(self.construct_command(self.CMD_WORKING_PERIOD, [0x1, period]))
-        self.read_response()
- 
-    def cmd_firmware_ver(self):
-        self.ser.write(self.construct_command(self.CMD_FIRMWARE))
-        d = self.read_response()
-        self.process_version(d)
- 
-    def cmd_set_id(self,id):
-        id_h = (id>>8) % 256
-        id_l = id % 256
-        self.ser.write(self.construct_command(self.CMD_DEVICE_ID, [0]*10+[id_l, id_h]))
-        self.read_response()
- 
-    def set_pm10_calib(self,k,q):
-        self.pm10k=k
-        self.pm10q=q
-            
-    def set_pm25_calib(self,k,q):
-        self.pm25k=k
-        self.pm25q=q
-            
-    def elaborate (self):
-        self.pm10_acc=self.pm10_acc+((self.pm10kk*self.pm10*self.pm10)+self.pm10k*self.pm10+self.pm10q)/self.samples
-        self.pm25_acc=self.pm25_acc+((self.pm25kk*self.pm25*self.pm25)+self.pm25k*self.pm25+self.pm25q)/self.samples
-
-    def measure(self,op):
-        try:
-            self.lock.acquire()
-            if op=="update" :
-                self.update_measure()
-            if  op =="get":
-                return(self.get_measure())
-        finally:
-            self.lock.release()
- 
-    def update_measure(self):
-        self.pm10_act = self.pm10_acc
-        self.pm25_act = self.pm25_acc
-        self.validate=True
-        print (self.pm10_act,self.pm25_act)
-        self.pm10_acc=0
-        self.pm25_acc=0  
-        
-    def get_measure(self):
-        pm10_tmp=self.pm10_act
-        pm25_tmp=self.pm25_act
-        return (pm10_tmp,pm25_tmp,self.validate)
-
-    def stop_ciclo(self):
-    	print ("Stop ciclo Comandato")
-        self.estop.set()
-    	self.run= False
-    	self.sensor_on.join()
-    	return(True)
-            
-    def __ciclo(self):
-        time.sleep(5)
-        print ("partito")
-        self.validate = False
-#        self.cmd_set_sleep(1)
-        Ton=self.runtime
-        self.Toff=self.sleeptime*60
-        print ("Toff=",self.Toff,"Ton=",self.Ton)
-        Tmedia=self.samples
-        self.cmd_set_mode(1);
-        time.sleep(2)
-        log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+" Test Sensor Mode\n")
-        while not (self.test_query_mode()):
-            self.cmd_set_mode(1)
-            time.sleep(2)
-        time.sleep(3)
-        log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+" Test Superato \n")
-        try :
-            print ("In Ciclo Ton= %d Toff=%d \n" %(self.Ton,self.Toff))
-            log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+" In Ciclo Ton= %d minuti Toff=%d secondi \n" %(self.Ton,self.Toff))
-            while self.run:
-                if (self.Toff > 30 ):
-                    print (time.strftime("%H:%M:%S"),"PAUSE",sensor.get_sleeptime())
-                    b='echo "'+time.strftime("%H:%M:%S")+' PAUSE %d %4.2f %4.2f" > /var/www/html/alfetta/sensor.log' %((sensor.get_sleeptime()*60)-30,self.pm10,self.pm25)
-                    os.system(b) 
-                    self.status="PAUSE"
-                    self.cmd_set_sleep(1)
-#                    time.sleep(Toff-30)
-                    if self.estop.wait(self.Toff-30) :
-                        print ("STOP 1")
-                        raise ValueError('Recevived Stop')
-#                    time.sleep(Toff-30)
-                    self.status="PRE RUNNING"
-                    print(time.strftime("%H:%M:%S"),"PRE RUNNING")
-                    b='echo "'+time.strftime("%H:%M:%S")+' PRE_RUNNING %d %4.2f %4.2f" > /var/www/html/alfetta/sensor.log' %(30,self.pm10,self.pm25)
-                    os.system(b) 
-                    self.cmd_set_sleep(0)
-                    if self.estop.wait(30):
-                        print ("STOP 2")
-                        raise ValueError('Recevived Stop')
-#                    time.sleep(30)         # accensione 
-                    print (time.strftime("%H:%M:%S"),"RUNNING", sensor.get_runtime())
-                    self.status="RUNNING"
-                    for j in range(1,self.Ton+1):
-                        for i in range (1,Tmedia+1):
-                            inizio=time.time()
-                            self.cmd_query_data();
-                            self.elaborate()             # esegue per ora solo la media 
-                            b='echo "'+time.strftime("%H:%M:%S")+' RUNNING %d %4.2f %4.2f" > /var/www/html/alfetta/sensor.log' %(sensor.get_runtime()*60,self.pm10,self.pm25)
-                            os.system(b) 
-                            self.sample_number=i
-                            if self.estop.wait(1):
-                                print ("STOP 3")
-                                raise ValueError('Recevived Stop')
-#                           time.sleep(1)
-                        self.measure("update")
-            self.cmd_set_sleep(1)
-        except Exception as  e:
-            log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+str(e)+"\n")
-            pass
-        print ("SDS011STOP\n")
-        self.ser.close()
-#------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -582,6 +286,22 @@ def read_conf(filename):
             config[chiave] = valore
     in_file.close()
     return (config)
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+def autocalibration(isgnum,frame):
+   global configurazione
+   log.event_log (time.strftime("%H:%M-%a-%b-%d-%Y")+" Aggiornamento Parametri di Calibrazione\n")
+   basepath="/home/pi/alfetta/"
+   configurazione=read_conf(basepath+"etc/alfetta.conf")
+   log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+" PM2.5 :"+" kk2="+configurazione["kk2"]+" k2="+configurazione["k2"]+" q2="+configurazione["q2"]+"\n")
+   log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+" PM10  :"+" kk1="+configurazione["kk1"]+" k1="+configurazione["k1"]+" q1="+configurazione["q1"]+"\n")
+   sensor.set_pm10_calibration(configurazione["kk1"],configurazione["k1"],configurazione["q1"])
+   sensor.set_pm25_calibration(configurazione["kk2"],configurazione["k2"],configurazione["q2"])
+   b='echo "nome=%s\nkk1=%s\nk1=%s\nq1=%s" > /var/www/html/alfetta/correction.conf' %(configurazione["nome"],configurazione["kk1"],configurazione["k1"],configurazione["q1"])
+   os.system(b)
+   b='echo "kk2=%s\nk2=%s\nq2=%s" >> /var/www/html/alfetta/correction.conf' %(configurazione["kk2"],configurazione["k2"],configurazione["q2"])
+   os.system(b)
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 class db_client :
@@ -655,18 +375,19 @@ class db_client :
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-    _version = "3.2" 
+    _version = "1.0" 
     exit = threading.Event()
     basepath="/home/pi/alfetta/"
     configurazione=read_conf(basepath+"etc/alfetta.conf") 
     log = logger(basepath+"var/log/datalog.log",configurazione["nome"])
     log.reset_report()                          #inizializza i valori di report
     log.recover_report()
-    b='echo "SDS011.py Ver '+_version+'" > /var/www/html/alfetta/version.log'
+#    b='echo "Centralina.py Ver '+_version+'" > /var/www/html/alfetta/version.log'
     b='cat /home/pi/alfetta/version  > /var/www/html/alfetta/version.log'
     os.system(b) 
     time.sleep(2)
-    mac=os.popen("/sbin/ifconfig eth0 |grep HWaddr|cut -d' ' -f11").read().replace("\n","")
+#    mac=os.popen("/sbin/ifconfig wlan0 |grep HWaddr|cut -d' ' -f10").read().replace("\n","")
+    mac=""
     if not (re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower())):
         mac=os.popen("/sbin/ifconfig wlan0 |grep HWaddr|cut -d' ' -f10").read().replace("\n","")
     mac=mac.replace(":","_")
@@ -676,24 +397,50 @@ if __name__ == "__main__":
 
 #--------------------------- SELEZIONE DEL DRIVER DEL SENSORE APPLICATO --------
     try:
+	print (configurazione["sensore"],configurazione["sensore"].split(",")[0])
         if (configurazione["sensore"] == "SDS011") :
+            import lsds011
             serfound = False
             for s in glob.glob('/dev/tty[SU]*'):
                 print (s)
-                if ((s == "/dev/ttyUSB0") or (s == "/dev/ttyS0")) :
-                  sensor=sds011_sensor(s)
+                if ((s == "/dev/ttyUSB0") or (s == "/dev/ttyUSB1") or (s == "/dev/ttyS0")) :
+#                if ((s == "/dev/ttyUSB0") or (s == "/dev/ttyS0")) :
+                  sensor=lsds011.sds011_sensor(s,log)
                   if (sensor):
                      serfound = True
+                     sensor.set_cicletime(2)    # 2 minuti run 3 minuti pausa
                      break
             if (not serfound) :
                 print ("Stop Ciclo!!!! Serial Device Not Found")
                 log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+"STOP:Serial port device not found\n")
                 sys.exit(1)
+        elif (configurazione["sensore"].split(",")[0] == "QBIT"):
+            print ("Install Qbit drive")
+#            print (imported("lqbit"))
+#            if not imported("lqbit"):
+#                import lqbit
+            import lqbit
+#            sensor=lqbit.qbit_sensor("/dev/ttyUSB0")
+            serfound = False
+            for s in glob.glob('/dev/tty[SU]*'):
+                print (s)
+                if ((s == "/dev/ttyUSB0") or (s == "/dev/ttyUSB1") or (s == "/dev/ttyS0")) :
+                  confpm=configurazione["sensore"].split(",")[1]
+                  sensor=lqbit.qbit_sensor(s,log,int(confpm))
+                  if (sensor):
+                     serfound = True
+                     sensor.set_cicletime(4)    # 4 minuti run 1 minuti pausa
+                     break
+            if (not serfound) :
+                print ("Stop Ciclo!!!! Serial Device Not Found")
+                log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+"STOP:Serial port device not found\n")
+                sys.exit(1)
+
         else :
             log.event_log (time.strftime("%H:%M-%a-%b-%d-%Y")+"Nessun sensore conosciuto configurato :",configurazione["sensore"])
             exit(0)
 #----------------------------PARTE COMUNE A TUTTI I SENSORI---------------------
-        sensor.set_cicletime(2)    # 2 minuti run 3 minuti pausa
+#        sensor.set_cicletime(2)    # 2 minuti run 3 minuti pausa
         sensor.set_pm10_calibration(configurazione["kk1"],configurazione["k1"],configurazione["q1"])
         sensor.set_pm25_calibration(configurazione["kk2"],configurazione["k2"],configurazione["q2"])
         b='echo "nome=%s\nkk1=%s\nk1=%s\nq1=%s" > /var/www/html/alfetta/correction.conf' %(configurazione["nome"],configurazione["kk1"],configurazione["k1"],configurazione["q1"])
@@ -702,17 +449,16 @@ if __name__ == "__main__":
         os.system(b) 
         time.sleep(5)
         log.event_log (time.strftime("%H:%M-%a-%b-%d-%Y")+"Start SDSO11.py vers "+_version+"\n")
-#        while not  sensor.test_query_mode() :
-#            time.sleep(1)
         log.event_log (time.strftime("%H:%M-%a-%b-%d-%Y")+"Sensor is running in Query Mode : Waiting to Start\n")
 #       Intercetta trigger USR1 (#pkill --signal SIGUSR1 sds011.py )per modifica parametri di taratura
-        signal.signal(signal.SIGUSR1,sensor.autocalibration)
+        signal.signal(signal.SIGUSR1,autocalibration)
         while not exit.is_set() :
-#            time.sleep(60)                                      # esegue ogni minuto
             if (sensor.get_status() == "RUNNING") :
-                m=sensor.measure("get") 
-                if m[2] :
+               m=sensor.measure("get") 
+               print ("Acquisita misura\n")
+               if m[2] :
                     rr=database.to_db(m[0],m[1],log)
+		    print ("Inviata misura\n",m[0],m[1])
                     for r in log.eval_report(m[0],m[1]):
                         log.event_log(time.strftime("%H:%M-%a-%b-%d-%Y")+r+rr+"\n")
             exit.wait(60)

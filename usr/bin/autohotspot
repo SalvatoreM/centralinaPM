@@ -160,10 +160,13 @@ else #ssid or MAC address not in range
        fi
 
 fi
-cable=$(cat  /sys/class/net/eth0/carrier);
-echo $cable
-if [ $cable -eq 1 ]
-then
-   echo "Cable Connected" >> /home/pi/alfetta/var/log/autohostspot.log
-	KillHotspot
+if  ifconfig | grep  "eth0"
+then 
+   cable=$(cat  /sys/class/net/eth0/carrier);
+   echo $cable
+   if [ $cable -eq 1 ]
+   then
+      echo "Cable Connected" >> /home/pi/alfetta/var/log/autohostspot.log
+	   KillHotspot
+   fi
 fi

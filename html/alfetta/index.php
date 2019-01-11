@@ -311,11 +311,13 @@ $checked="";
 if  ($lista["sensore"]=="SDS011"){$checked="checked";}
 echo '<th align="left"><input type="radio" name="sensore" value="SDS011" '.$checked.'>SDS011<br>';
 $checked="";
-if  ($lista["sensore"]=="Alfetta"){$checked="checked";}
-echo '<input type="radio" name="sensore" value="Alfetta" '.$checked.' disabled >OPC-N2 Alphasense<br>';
+if  ($lista["sensore"]=="QBIT,10"){$checked="checked";}
+echo '<input type="radio" name="sensore" value="QBIT,10" '.$checked.' disabled >QBIT_PM10<br>';
 $checked="";
-if  ($lista["sensore"]=="Qbit"){$checked="checked";}
-echo '<input type="radio" name="sensore" value="Qbit" '.$checked.' disabled>Qbit<br></th></tr>';
+if ($lista["sensore"]=="QBIT,25"){$checked="checked";}
+echo '<input type="radio" name="sensore" value="QBIT,25" '.$checked.' disabled >QBIT_PM25<br>';
+/*if  ($lista["sensore"]=="Qbit"){$checked="checked";}
+echo '<input type="radio" name="sensore" value="QBIT" '.$checked.' disabled>Qbit<br></th></tr>';*/
 echo "</table><br>";
 /*------------------------------Save----------------------------------------------*/
 echo '<input type="hidden" name="esegui" value="salva" />';

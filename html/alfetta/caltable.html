@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type"; content="text/html; charset=utf-8" /><TITLE>AutoCalibrazione</TITLE></meta>
+</HEAD>
+<style>
+table, th, td {
+    border: 1px solid black;
+    text-align :center;
+}
+#sensor_head {background-color:#e6ffff;}
+#hosts_head {background-color:#ffffcc;}
+#titolo {background-color:#ffd633;}
+#wifi {background-color:#ffd633;}
+#misure {background-color:#66cc99;}
+#commands {background-color:#cccc00;}
+#bstart {color:green;}
+#bstop {color:red;}
+#result {background-color:#66cc99;}
+#log {background-color:#e6ffff;}
+#diario {background-color:#ffd633;}
+</style>
+<script src="../chart/Chart.bundle.js"></script>
+<!--<script src="../chart/Chart.js"></script>-->
+<!--<script src="../chart/moment.js"></script>-->
+<script>
+//-----------------------------------------------------------------------
+function get_config() {
+   console.log("Config");
+//   lab=[];
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         ret=this.responseText;
+         console.log(ret);
+         document.getElementById("nome").innerHTML=ret.split(",")[0];
+//         document.getElementById("equazionePM10").innerHTML=ret.split(",")[1];
+//         document.getElementById("equazionePM25").innerHTML=ret.split(",")[2];
+       }
+   };
+   xhttp.open("GET", "config.php", true);
+   xhttp.send();
+}
+//-----------------------------------------------------------------------
+function get_historytable(){
+  var xmlhttp = new XMLHttpRequest();
+  var txt = "";
+  obj = { table: "customers", limit: 20 };
+  dbParam = JSON.stringify(obj);
+  xmlhttp.onreadystatechange = function() {
+     if (this.readyState == 4 && this.status == 200) {
+//      console.log(this.responseText);
+        myObj = JSON.parse(this.responseText);
+        txt += '<table  width="100%"  border="1">';
+//        console.log(myObj.calibration);
+        for (x in myObj.calibration) {
+//           console.log(myObj.calibration[x]);
+           o=myObj.calibration[x];
+           txt += "<tr><td><h6>" +o.data + "</h6></td><td>"+ o.measure + "</td><td>"+o.original_m + "</td>";
+           txt += "<td>" +o.original_q + "</td><td>"+ o.r2 +"</td><td><b>"+ o.m + "</b></td><td><b>"+o.q + "</b></td>";
+           txt += "<td>" +o.giorni + "</td><td>"+ o.n_valori + "</td><td>"+o.bassa + "</td>";
+           txt += "<td>" +o.media + "</td><td>"+ o.alta + "</td><td>"+o.over + "</td></tr>";
+        }
+        txt += "</table>"
+//        console.log(txt);
+        document.getElementById("history").innerHTML = txt;
+     }
+     else if  (this.readyState == 4 && this.status == 404){
+        console.log("File caltable.json NON Trovato"+ this.status);
+        gen_caltable();
+     }
+  };
+  xmlhttp.open("GET", "caltable.json", true);
+  xmlhttp.send();
+}
+//-----------------------------------------------------------------------
+function gen_caltable(){
+  console.log("gen_caltable");
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+     if (this.readyState == 4 && this.status == 200) {
+        console.log("File Json Generato");
+//      console.log(this.responseText);
+     }
+  };
+  xmlhttp.open("GET", "gen_caltable.php", true);
+  xmlhttp.send();
+}
+
+//-----------------------------------------------------------------------
+var d = new Date();
+oggi=('0'+d.getDate()).slice(-2)+"/"+('0'+eval(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear();
+console.log(oggi);
+oggi_short=('0'+eval(d.getMonth()+1)).slice(-2)+"/"+('0'+d.getDate()).slice(-2)+"/"+d.getFullYear();
+console.log(oggi_short);
+var date1 = new Date(oggi_short);
+var date2 = new Date("01/01/2019");
+var diffDays = parseInt((date1 - date2) / (1000 * 60 * 60 * 24)); 
+console.log("da giorni "+diffDays);
+get_config();
+</script>
+<BODY bgcolor="#FFFFFF" >
+<table  width="70%" border="2" cellspacing="0" cellpadding="0" align="center">
+<th  id="titolo" colspan="2"><h1>Calibration History<p id="nome"></h1></p></th>
+<tr><td id="commands" style="width:50%;"><form action='index.php'><input type="submit" value="Config Menu" /></form></td>
+<td  id="commands"><form action='show.html'><input type="submit" value="Control Panel" /></form></td></tr>
+<tr><td id="history" colspan="2"></td></tr>
+<td colspan="2" id="commands"><form action='scatter.html'><input type="submit" value="Return to Calibration" /></form></td></tr>
+<!--<input type="button" value="Return to Calibration" />-->
+</td></tr>
+</table>
+</BODY>
+<script>
+get_historytable();
+</script>
+</HTML>

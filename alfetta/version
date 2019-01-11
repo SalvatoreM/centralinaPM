@@ -21,9 +21,9 @@
 #Ver. 3.2.3.1.1
 # Modified tstforkeys.sh  ; errore di copia chiavi in opevpn directory
 #------------------------------------------
-Ver. 3.3.4.2.1
-#  SDS011.py mofdify to accept ttyS0 interface also ttyUSB0
-#  calibration/autocalibration.py added to calculate linear regrassion parameters
+#Ver. 3.3.4.2.1
+#  SDS011.py mofdified to accept ttyS0 interface also ttyUSB0
+#  calibration/autocalibration.py added to calculate linear regression parameters
 #  calibration/autocalibration.sh added to manage autocalibration process by web interface
 #  html/alfetta/calibration.php added to comand adn retrive data for autolcalibration procedure
 #  html/alfetta/comandi/proxycom.sh added to triggerd by incron event and execute  html/alfetta/comandi/comando.sh
@@ -32,3 +32,25 @@ Ver. 3.3.4.2.1
 #  html/alfetta/show.html modified to access calibration web page
 #  html/alfetta/index.php modified to access directely to calibration web page
 #------------------------------------------
+#------------------------------------------
+#Ver. 3.4.4.2.1
+#  SDS011.py modified to reduce no considered points in regression evaluation
+#  SDS011.py corretted average calculation
+#  Modified autocalibration.py exclusion vector of opoints
+#  Modified scatter.html and scatter.js to exclude points and recalcution function
+#  Added  recalculation.php for exclusion points and recalcution function
+#  Added  autorecalculation.sh for exclusion points and recalcution function
+#------------------------------------------
+#------------------------------------------
+#Ver. 4.0.0.0.0 (Beta)
+# In fase di allineamento
+#Ver. 4.0.0.0.0
+# Unified projects for SD011 and Qbit Sensors
+# Added new functions : Calibration Procedure - Calibration GUI - Calibration History (caltable.json) -   
+# To do update , on fly (while running) , calibration parameters to centralina.py  
+#Ver. 4.1.1.1.0
+# Modified Centraline.py  bugs, SIGUSR1 trigger   
+# Added updaconf.sh   update alfetta.con file whit new calibration parameters
+# Mofified updatehistory.php  procedure to update calibration histori and trig event to alfetta.con modify
+Ver. 4.1.2.2.0
+# Added protection to Calibartion Register by Password  
