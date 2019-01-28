@@ -354,8 +354,8 @@ function get_wifi(){
          ret=this.responseText;
          ret=ret.split("\n");
          console.log(ret);
-         update_wifi(ret[4],ret[5]);
-         document.getElementById("ssid").innerHTML=ret[1]+" "+"Chan:"+ret[2]+" bitrate:"+ret[3]+" Mb/s"+"<br>signal:"+ret[6];
+         update_wifi(ret[4],ret[5],ret[7]);
+         document.getElementById("ssid").innerHTML="SSID:"+ret[1]+" "+"<br>Chan:"+ret[2]+"<br> bitrate:"+ret[3]+"Mb/s"+"<br>signal:"+ret[6]+"dBm";
        }
    };
    xhttp.open("GET", "wifi.php", true);

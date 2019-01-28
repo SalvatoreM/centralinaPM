@@ -1,6 +1,6 @@
 #!/bin/sh
 name=$(cat /home/pi/alfetta/etc/alfetta.conf |grep nome |cut -d\= -f2)
-mac=$(/sbin/ifconfig wlan0 |grep HWaddr |cut -d " " -f10)
+mac=$(/sbin/ifconfig wlan0 |grep -E 'HWaddr|ether' |cut -d " " -f10)
 #mac=$(cat /home/pi/alfetta/add.mac)
 #mac1=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
 echo $name

@@ -202,12 +202,13 @@ function wifi_trend(){
    wifi.update();
 }
 
-function update_wifi(quality,signal){
+function update_wifi(quality,signal,unity){
    l=wifi_vect_sig.length-1;
    wifi_vect_sig.shift();
    wifi_vect_sig.push(signal);
    wifi_vect_qual.push(quality);
    wifi_vect_qual.shift();
+   wifi.data.datasets[0].label ="signal ("+unity+")" ;
    wifi.data.datasets[0].data = wifi_vect_sig;
    wifi.data.datasets[1].data = wifi_vect_qual;
    wifi.update();

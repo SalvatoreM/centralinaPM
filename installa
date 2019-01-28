@@ -1,0 +1,27 @@
+#
+apache2:apt
+#
+php:apt
+#
+libapache2-mod-php:apt 
+#
+incron:apt
+incron:exe:echo root >> /etc/incron.allow
+#
+python-serial:apt
+#
+#wavemon:apt
+#
+openvpn:apt
+openvpn:exe:systemctl enable openvpn
+openvpn:exe:sed -i  's/#AUTOSTART=\"all\"/AUTOSTART=\"all\"/' /etc/default/openvpn
+#
+hostapd:apt
+hostapd:exe:systemctl disable hostapd
+hostapd:exe:sed -i  's/#DAEMON_CONF=\"\"/DAEMON_CONF=\"\/etc\/hostapd\/hostapd.conf\"/' /etc/default/hostapd
+hostapd:exe:sed -i  's/^DAEMON_OPTS=\"\"/#DAEMON_OPTS=\"\"/' /etc/default/hostapd
+#
+#dnsmasq:
+dnsmasq:exe:apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install dnsmasq -y
+dnsmasq:exe:systemctl disable dnsmasq
+dnsmasq:exe:echo -e  '# Ip statico di fallback\nprofile ipstatic-eth0\nstatic ip_address=192.168.100.50/24\ninterface eth0\nfallback ipstatic-eth0\nnohook wpa_supplicant\n'  >> /etc/dhcpcd.conf

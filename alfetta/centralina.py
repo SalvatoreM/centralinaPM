@@ -389,7 +389,7 @@ if __name__ == "__main__":
 #    mac=os.popen("/sbin/ifconfig wlan0 |grep HWaddr|cut -d' ' -f10").read().replace("\n","")
     mac=""
     if not (re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower())):
-        mac=os.popen("/sbin/ifconfig wlan0 |grep HWaddr|cut -d' ' -f10").read().replace("\n","")
+        mac=os.popen("/sbin/ifconfig wlan0 |grep -E 'HWaddr|ether'|cut -d' ' -f10").read().replace("\n","")
     mac=mac.replace(":","_")
     database=db_client(configurazione["nome"],configurazione["user"],configurazione["id"],configurazione["pswdb"],"ninuxaria",mac)
     for h in configurazione["host"]:
