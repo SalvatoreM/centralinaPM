@@ -59,36 +59,56 @@ prima di installare il software python e php della Centralina
 
 I pacchetti sono i seguenti:
 *  Web server Apache e PHP
+
 > sudo apt-get install apache2 -y
+
 > sudo apt-get install php libapache2-mod-php -y
 
 * Cattura eventi su file e cartelle
 > sudo apt-get install incron
+
 > echo root >> /etc/incron.allow
 
 Generare trigger di cattura evento
+
 > sudo incrontab -e
+
 quindi aggiungere :
+
  /var/www/html/alfetta/comandi/ IN_CLOSE_WRITE /var/www/html/alfetta/comandi/proxycom.sh
 
 salvare e chiudere l'editor
 
 * Libreria per applicativi python
+
 > sudo apt-get install python-serial
+
  * Wifi monitor (non neccessario dall versione 4.3.x.x.x)
  > sudo apt-get install wavemon
+ 
  * VPN client per connessione alla rete di monitoragggio e manutanzione remota (opzionale)
+ 
  > sudo apt-get install openvpn
+ 
  > sudo systemctl enable openvpn
+ 
  >  sudo  sed -i  's/#AUTOSTART=\"all\"/AUTOSTART=\"all\"/' /etc/default/openvpn
+ 
  * Procedura di attivazione del sistema di auto predispozione HostSpot in mancanza di connessione Wifi o connessione via cavo Ethernet (per una comprensione più dettagliata rifersirsi a http://www.raspberryconnect.com/network/item/330-raspberry-pi-auto-wifi-hotspot-switch-internet
  > sudo apt-get install hostapd
+ 
  > sudo systemctl disable hostapd
+ 
  > sudo sed -i  's/#DAEMON_CONF=\"\"/DAEMON_CONF=\"\/etc\/hostapd\/hostapd.conf\"/' /etc/default/hostapd
+ 
 > $>sudo sed -i  's/^DAEMON_OPTS=\"\"/#DAEMON_OPTS=\"\"/' /etc/default/hostapd
+
 > $>sudo apt-get install dnsmasq
+
 > $>systemctl disable dnsmasq
+
 > $>sudo echo -e  '# Ip statico di fallback\nprofile ipstatic-eth0\nstatic ip_address=192.168.100.50/24\ninterface eth0\nfallback ipstatic-eth0\nnohook wpa_supplicant\n'  >> /etc/dhcpcd.conf
+
 
 ### Installazione Files Applicativi
 A questo punto l'infrastruttura operativa per il sistema Centralina è completo. 
@@ -96,8 +116,11 @@ Devono essere solo installati i file  operativi .py .php .html ecc..
 Per questo scaricare il file .zip  da questo repository e spacchettarlo in una cartella oppure utilizzando gli strumenti di git.
 La struttura del pacchetto prevede già la allocazione dei file nel filesyetm di raspbian.
 Una procedura automatica di installazione è possibile  :
+
 > cd path/dovehocopiatoifiles/
+
 > sudo ./install.sh 
+
 Se avete dimenticato qualche dipendenza questa verrà installata.
 
 Se tutto è andato bene e senza errori  spegnete la RaspBerry , sconnetete il cavo ethernet e riavviatela. 
@@ -106,5 +129,6 @@ L'indirizzo della Centralina è 192.168.100.5
 Attraverso il vostro browser (evitate come la peste  MS Explorer)  http://192.168.100.5/alfetta e comparitrà la maschera di configurazione dalla quale potrete configurare la connessione Wifi al vostro router ed inoltre potrete scoprire tutte le funzionalità della centralina.
 ### Buon Lavoro
 Buon divertimento e Buon Aria ........
+
 Per accidenti , imprecazioni e ...  complimenti a
  salvatoremoretti@tiscali.it
