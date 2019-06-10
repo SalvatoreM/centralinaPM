@@ -29,6 +29,7 @@ $bitrate=explode("=",explode(" ",$return[2])[1])[1];
 $linkquality=explode("=",explode(" ",$return[3])[1])[1];
 $linkperc=eval("return ".$linkquality.";");
 $signallevel=explode("=",explode(" ",$return[3])[3])[1]; 
+if ($signallevel > "-31") {$signallevel ="-31";}
 $signalpower=number_format(pow(10,$signallevel/10)*1000000.0,10); # convert to nW
 $unity="nW"; //base unit to calcolate wifi Power  from dBm
 /*

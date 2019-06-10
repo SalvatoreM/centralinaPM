@@ -132,14 +132,18 @@ def calibration (pm,exc):
    print "]"
    distribution_file.write( "]")
    distribution_file.close()
-   xmedio=xmedio/count 
-   ymedio=ymedio/count
+   if (mod_zerointercetta == "0"):
+      xmedio=xmedio/count 
+      ymedio=ymedio/count
+   else : 
+      xmedio = 0
+      ymedio = 0
    for i,x in enumerate (b):
       if i < len(rb)and (not(i in esclude)) :
           m=m+((x-xmedio)*(rb[i]-ymedio))  # Pendenza
-          sq=sq+(x-xmedio)*(x-xmedio)      # Intercetta
+          sq=sq+(x-xmedio)*(x-xmedio)      
    m=m/sq
-   q=ymedio-m*xmedio
+   q=ymedio-m*xmedio                       # Intercetta
    if q >= 0 :
       print pm+": equazione = {:.2f}x+{:.2f}".format(m,q)
    if q < 0  :
@@ -166,7 +170,9 @@ try:
    if len (sys.argv) > 2:
       exclusion=sys.argv[2]
       print exclusion
+      mod_zerointercetta=sys.argv[3]
    else :
+      mod_zerointercetta = "0"
       exclusion='[]'
 
    configurazione=read_conf("/home/pi/alfetta/etc/alfetta.conf")

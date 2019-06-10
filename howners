@@ -3,11 +3,11 @@ totale 48
 drwxr-xr-x 6 vpn  vpn  4096 gen 27 17:16 alfetta
 drwxr-xr-x 5 root root 4096 gen 24 18:51 etc
 -rw-r--r-- 1 root root  760 gen 22 11:51 evironment
--rw-r--r-- 1 root root    0 gen 27 19:52 howners
+-rw-r--r-- 1 root root    0 feb 27 11:26 howners
 drwxr-xr-x 4 root root 4096 dic  5 16:32 html
 -rw-r--r-- 1 root root  874 gen 27 19:51 installa
 -rwxr-xr-x 1 root root 2140 gen 26 21:25 install.sh
--rwxr-xr-x 1 root root 1028 gen 24 13:33 preinstall.sh
+-rwxr-xr-x 1 root root 1025 gen 27 19:55 preinstall.sh
 drwxrwxr-x 3 root root 4096 ott 29  2017 usr
 drwxrwxr-x 3 root root 4096 ott 29  2017 var
 
@@ -26,15 +26,15 @@ drwxrwxr-x 2 vpn  vpn   4096 gen 26 23:39 etc
 -rwxr-xr-x 1 root root   296 gen  6 22:12 sds_stop.sh
 -rw-rw-rw- 1 root root  3969 gen  2  2018 sended
 -rwxr-xr-x 1 root root   519 gen 27 17:16 send_remote.sh
--rwxr-xr-x 1 vpn  vpn   1013 gen 15 16:45 tstforkeys.sh
+-rwxr-xr-x 1 vpn  vpn   1024 feb 13 08:56 tstforkeys.sh
 drwxr-xr-x 3 vpn  vpn   4096 dic 31  2017 var
--rw-r--r-- 1 root root  3095 gen 27 17:16 version
+-rw-r--r-- 1 root root  3166 feb 20 23:02 version
 
 ./alfetta/calibration:
 totale 24
--rwxr-xr-x 1 root root 7403 gen  8 19:57 autocalibration.py
+-rwxr-xr-x 1 root root 7580 gen 31 09:14 autocalibration.py
 -rwxr-xr-x 1 root root 1859 gen  6 22:12 autocalibration.sh
--rwxr-xr-x 1 root root  820 dic 19 15:02 autorecalibration.sh
+-rwxr-xr-x 1 root root  894 gen 29 13:01 autorecalibration.sh
 -rwxr-xr-x 1 root root  354 gen  6 22:12 interrupt.py
 -rwxr-xr-x 1 vpn  vpn   430 dic 19 15:02 logread.sh
 
@@ -103,7 +103,7 @@ lrwxrwxrwx 1 root     root        25 dic  6 11:20 datalogs -> /home/pi/alfetta/v
 -rw-r--r-- 1 www-data www-data  6665 gen  9 22:33 functions.js
 -rw-r--r-- 1 root     root       196 gen  9 23:43 gen_caltable.php
 -rwxrwxrwx 1 root     root       460 dic 29  2017 host.php
--rw-r--r-- 1 root     root     18131 gen  6 22:12 index.php
+-rw-r--r-- 1 root     root     18182 feb 25 16:31 index.php
 -rw-r--r-- 1 www-data www-data 15086 gen 22  2017 index.php.back
 -rw-r--r-- 1 root     root     15000 gen  1  2018 index.php.temp
 -rw-r--r-- 1 root     root     14341 dic 31  2017 pause.jpeg
@@ -111,12 +111,12 @@ lrwxrwxrwx 1 root     root        25 dic  6 11:20 datalogs -> /home/pi/alfetta/v
 -rw-r--r-- 1 root     root     11928 dic 31  2017 prerunning.jpeg
 -rw-r--r-- 1 root     root        21 gen  7  2018 process.log
 -rwxr-xr-x 1 root     root       231 gen  1  2018 process.php
--rw-r--r-- 1 root     root      1145 dic 19 15:23 recalibration.php
+-rw-r--r-- 1 root     root      1207 gen 31 08:48 recalibration.php
 -rw-r--r-- 1 root     root        16 gen  2  2018 result.log
 -rw-rw-rw- 1 www-data www-data  1180 gen  7  2018 rtdata
 -rwxrwxrwx 1 root     root       284 dic 28  2017 rtdata.php
 -rw-r--r-- 1 root     root     11880 dic 31  2017 running.jpeg
--rw-r--r-- 1 root     root     15701 gen 10 14:40 scatter.html
+-rw-r--r-- 1 root     root     15851 gen 31 09:15 scatter.html
 -rw-r--r-- 1 root     root      6732 gen  6 22:12 scatter.js
 -rw-r--r-- 1 root     root        31 gen  9  2018 sensor.log
 -rwxrwxrwx 1 root     root       185 dic 31  2017 sensor.php
@@ -126,7 +126,7 @@ lrwxrwxrwx 1 root     root        25 dic  6 11:20 datalogs -> /home/pi/alfetta/v
 -rw-r--r-- 1 root     root      5130 gen 27 17:16 trend.js
 -rw-r--r-- 1 root     root      1000 gen  8 12:28 updatehistory.php
 -rwxr-xr-x 1 root     root       235 dic 19 15:22 version.php
--rw-r--r-- 1 root     root      2195 gen 27 18:28 wifi.php
+-rw-r--r-- 1 root     root      2244 feb  1 22:09 wifi.php
 
 ./html/alfetta/comandi:
 totale 8

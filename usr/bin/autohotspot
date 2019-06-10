@@ -160,7 +160,7 @@ else #ssid or MAC address not in range
        fi
 
 fi
-if  ifconfig | grep  "eth0"
+if  /sbin/ifconfig | grep  "eth0"
 then 
    cable=$(cat  /sys/class/net/eth0/carrier);
    echo $cable

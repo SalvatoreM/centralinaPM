@@ -54,9 +54,17 @@
 # Mofified updatehistory.php  procedure to update calibration histori and trig event to alfetta.con modify
 #Ver. 4.1.2.2.0
 # Added protection to Calibartion Register by Password  
-Ver. 4.2.3.3.1
+#Ver. 4.2.3.3.1
 #  Modified centralina.py to recognize mac address for ether key to
 #  Modified send_remote.sh to recognize mac address for ether key to
 #  Eliminate dependence from wavemon for eleimiante -d option in version 8.0
 #  Modified wifi.php to mech with new wifi monitor by iwconfig command iseta wavemon application
 #  
+#Ver. 4.2.3.4.1
+#  Modified for calibration Intercetta forzed to Zero 
+#  Config web page fixed connection SSID verification
+#Ver. 4.2.3.5.1
+# Modified Calibration range : N days Calibration data from D days form today
+Ver. 4.2.3.6.1
+# Modified calibration procedure for security patch
+# Danied login by ssh

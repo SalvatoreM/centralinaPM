@@ -12,6 +12,7 @@ then
 #
 	   /usr/bin/wget http://94.177.187.133/centraline/$name.ta.key -O /etc/openvpn/ta.key
 	   if [ -s /etc/openvpn/ta.key ]
+      then
 		   echo "scaricato $name.ta.key" >>/home/pi/alfetta/sended
 		   ( crontab -l | grep -v -F "tstforkeys.sh" ) | crontab -
 		   echo "CronJob  tstforkeys.sh eliminato" >>/home/pi/alfetta/sended

@@ -147,6 +147,19 @@ function option ($opt,$actual){
 
 function connected(){
 	exec('sudo wpa_cli list_networks',$return);
+//-------------------------------------------------------------
+exec('sudo rm last_connection');
+exec('echo "sudo wpa_cli -i wlan0 list_networks >/var/www/html/alfetta/last_connection" > comandi/comando.sh');
+do {
+//    if (file_exists("last_connection")) {
+    if (is_readable("last_connection")) {
+   sleep(1);
+   $return = explode("\n",shell_exec('cat  /var/www/html/alfetta/last_connection  2>&1'));
+   
+        break;
+    }
+} while(true);
+//------------------------------------------------------------
 /*	for($shift = 0; $shift < 4; $shift++ ) {
 		array_shift($return);
 	}*/
@@ -298,13 +311,13 @@ echo '<tr><th>Codice ID (una o due cifre)</th><th><input type="text" pattern="[0
 echo '<tr><th>Latitudine(+/-dd.ddd)</th><th><input type="text" pattern="[+-][0-9]+.[0-9]+" name="lat" value="'.$lista["lat"].'"/></th></tr>';
 echo '<tr><th>Longitudine(+/-dd.ddd)</th><th><input type="text" pattern="[+-][0-9]+.[0-9]+" name="lon" value="'.$lista["lon"].'"/></th></tr>';
 
-echo '<tr><th>Correzione PM10</th><th><input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="kk1" value="'.$lista["kk1"].'" />* X<SUP>2</SUP> +';
-echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="k1" value="'.$lista["k1"].'" />* X +';
-echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="q1" value="'.$lista["q1"].'" /></th></tr>';
+echo '<tr><th>Correzione PM10</th><th><input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="kk1" value="'.$lista["kk1"].'" readonly/>* X<SUP>2</SUP> +';
+echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="k1" value="'.$lista["k1"].'" readonly/>* X +';
+echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="q1" value="'.$lista["q1"].'" readonly /></th></tr>';
 
-echo '<tr><th>Correzione PM2.5</th><th><input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="kk2" value="'.$lista["kk2"].'" />* X<SUP>2</SUP> +';
-echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="k2" value="'.$lista["k2"].'" />* X +';
-echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="q2" value="'.$lista["q2"].'" /></th></tr>';
+echo '<tr><th>Correzione PM2.5</th><th><input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="kk2" value="'.$lista["kk2"].'" readonly/>* X<SUP>2</SUP> +';
+echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="k2" value="'.$lista["k2"].'" readonly />* X +';
+echo '<input type="text" style="text-align: center;" pattern="[+-]?[0-9]+.[0-9]+" size="4" name="q2" value="'.$lista["q2"].'" readonly /></th></tr>';
 /*---------------------------------------------------Sensore-------------------------*/
 echo '<tr><th>Sensore</th>';
 $checked="";

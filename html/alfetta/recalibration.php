@@ -15,12 +15,18 @@ if ($_GET) {
 //   echo $n_giorni;
    $pm=$_GET["pm"];
 //   echo $pm;
+    $zi_mode=$_GET["zi"];
 }
 else {
    $exclude=$argv[2];
    $pm=$argv[1];
+   $zi_mode=$argv[3];
 }
-$s='echo "/home/pi/alfetta/calibration/autorecalibration.sh '.$pm.' '.$exclude.'" >/var/www/html/alfetta/comandi/comando.sh';
+if ($pm!="PM10") and ($_GET["pm"]!="PM2.5")){ exit("Errors Parametres\n");}
+if (!preg_match('/^[0-1]{1}/',$zi];)){ exit("Errors Parametres\n");}
+if (!preg_match('/^\[([0-9]{1,2},)?+([0-9]{1,2})?\]/',$exclude)){ exit("Errors Parametres\n");}
+
+$s='echo "/home/pi/alfetta/calibration/autorecalibration.sh '.$pm.' '.$exclude.' ' .$zi_mode.'" >/var/www/html/alfetta/comandi/comando.sh';
 //echo $s;
 exec($s);
 

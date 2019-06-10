@@ -18,6 +18,7 @@ openvpn:exe:sed -i  's/#AUTOSTART=\"all\"/AUTOSTART=\"all\"/' /etc/default/openv
 #
 hostapd:apt
 hostapd:exe:systemctl disable hostapd
+hostapd:exe:systemctl unmask hostapd
 hostapd:exe:sed -i  's/#DAEMON_CONF=\"\"/DAEMON_CONF=\"\/etc\/hostapd\/hostapd.conf\"/' /etc/default/hostapd
 hostapd:exe:sed -i  's/^DAEMON_OPTS=\"\"/#DAEMON_OPTS=\"\"/' /etc/default/hostapd
 #

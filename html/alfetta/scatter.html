@@ -8,6 +8,9 @@ table, th, td {
     border: 1px solid black;
     text-align :center;
 }
+input[type="number"] {
+   width:50px;
+}
 #sensor_head {background-color:#e6ffff;}
 #hosts_head {background-color:#ffffcc;}
 #titolo {background-color:#ffd633;}
@@ -66,9 +69,12 @@ function calcola(){
    console.log("last PM2.5 : "+eval(last_pm25-1));
    campione=document.getElementById("campione").value;
    giorni=document.getElementById("giorni").value;
+   da_giorno=document.getElementById("da_giorno").value;
+   periodo=eval(da_giorno)+eval(giorni);
+   console.log("periodo ="+  periodo);
    pm=document.getElementById("pm").value;
    if (pm == "PM10"){
-	if (eval(last_pm10-1) <= giorni){
+	if (eval(last_pm10-1) <= periodo){
          	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
         	document.getElementById("result").style.backgroundColor='red';
          	document.getElementById("calc").disabled = false;
@@ -76,7 +82,7 @@ function calcola(){
 	}
    }
    if (pm == "PM2.5"){
-	if (eval(last_pm25-1) <= giorni){
+	if (eval(last_pm25-1) <= periodo){
          	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
          	document.getElementById("result").style.backgroundColor='red';
          	document.getElementById("calc").disabled = false;
@@ -97,7 +103,7 @@ function calcola(){
          clearInterval(id)
          document.getElementById("result").style.backgroundColor='red';
          document.getElementById("calc").disabled = false;
-   	 document.getElementById("ricalc").disabled = false;
+   	   document.getElementById("ricalc").disabled = false;
          if (error.includes("OK")){
    	    document.getElementById("calregister").disabled = false;
             document.getElementById("result").style.backgroundColor='green';
@@ -109,7 +115,7 @@ function calcola(){
             r2=JSON.parse(ret.split("\n")[3]);
             reference = pm+" "+document.getElementById("nome").innerHTML+" Vs "+campione;
 //            reference = pm+" "+campione+" Vs "+document.getElementById("nome").innerHTML;
-	    exclude=[]
+            exclude=[];
             redraw_graph(scatterChart,distr,regr,reference);
             document.getElementById("pendenza").innerHTML="Pendenza = "+r2.m;
             document.getElementById("intercetta").innerHTML="Intercetta = "+r2.q;
@@ -118,8 +124,8 @@ function calcola(){
          }
        }
    };
-   console.log("calibration.php?strcmp="+campione+"&n_day="+giorni+"&pm="+pm);
-   xhttp.open("GET", "calibration.php?strcmp="+campione+"&n_day="+giorni+"&pm="+pm, true);
+   console.log("calibration.php?strcmp="+campione+"&from_day="+da_giorno+"&n_day="+giorni+"&pm="+pm);
+   xhttp.open("GET", "calibration.php?strcmp="+campione+"&from_day="+da_giorno+"&n_day="+giorni+"&pm="+pm, true);
    xhttp.send();
 }
 //-----------------------------------------------------------------------
@@ -132,16 +138,19 @@ function ricalcola(){
 //   console.log( document.getElementById("pm").value);
    campione=document.getElementById("campione").value;
    giorni=document.getElementById("giorni").value;
+   da_giorno=document.getElementById("da_giorno").value;
+   periodo=eval(da_giorno)+eval(giorni);
+   console.log("periodo ="+  periodo);
    pm=document.getElementById("pm").value;
    if (pm == "PM10"){
-	if (eval(last_pm10-1) <= giorni){
+	if (eval(last_pm10-1) <= periodo){
          	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
         	document.getElementById("result").style.backgroundColor='red';
 		return;
 	}
    }
    if (pm == "PM2.5"){
-	if (eval(last_pm25-1) <= giorni){
+	if (eval(last_pm25-1) <= periodo){
          	document.getElementById("esito").innerHTML="Esito : Interferenza con Calibrazione Precedente";
          	document.getElementById("result").style.backgroundColor='red';
 		return;
@@ -180,8 +189,10 @@ function ricalcola(){
          }
        }
    };
+   zi=0;
+   if (document.getElementById("zerointercetta").checked){zi=1;}
    console.log("recalibration.php?pm="+pm+"&exclude=["+exclude+"]");
-   xhttp.open("GET", "recalibration.php?pm="+pm+"&exclude=["+exclude+"]", true);
+   xhttp.open("GET", "recalibration.php?pm="+pm+"&exclude=["+exclude+"]&zi="+zi, true);
    xhttp.send();
 }
 //-----------------------------------------------------------------------
@@ -349,9 +360,11 @@ get_historytable();
 <tr><td colspan="3" id="result"><b><p id="esito"> Esito :</b></p></td></tr>
 <tr><td colspan="2"><b><p id="pendenza">Pendenza = xx.xx</p><p id="intercetta">Intercetta = yy.yy</p></b></td><td><b><p id="determinazione">Coefficiente di Determinazione (R2) = 0.W</p></b></td></tr>
 <tr><td colspan="2" id="commands"><select id="pm" onchange="selstation()"><option>PM10</option><option value="PM2.5">PM2.5</option></select> 
-<input id="campione"  onchange="disable_ricalc()" type="text" value="FI::Firenze-Test01" style="text-align:center;"/>
-<input type="number" id="giorni" onchange="disable_ricalc()" min="0" max="10"  value="3" style="text-align:center;">Giorni<input id="calc" type="button" value="Calcola" onclick="calcola()"  />
-<input id="ricalc" type="button" value="Ricalcola" onclick="ricalcola()"  disabled/></td>
+<input id="campione"  onchange="disable_ricalc()" type="text" value="FI::Firenze-Test01" style="text-align:center;"/> Da 
+<input type="number" id="da_giorno" onchange="disable_ricalc()" min="0" max="10"  value="0" style="text-align:center;"> Giorni fa per
+<input type="number" id="giorni" onchange="disable_ricalc()" min="0" max="10"  value="3" style="text-align:center;"> Giorni<br><input id="calc" type="button" value="Calcola" onclick="calcola()"  />
+<input id="ricalc" type="button" value="Ricalcola" onclick="ricalcola()"  disabled/><br>
+Forza Intercetta a Zero<input type="checkbox" id="zerointercetta"></td>
 <td id="commands">
 <input id="calregister" type="button" onclick="calregister()" value="Register Calibration Values" />
 <!--<input id="reset" type="button" value="Reset to Unitary Calibration Values" />-->

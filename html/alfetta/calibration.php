@@ -8,23 +8,27 @@ while (file_exists ($path."errorcal" )){
 }
 //echo $s."\n";
 //exec("rm ".$path."errorcal");
-if ($_GET) {
+if ($_GET){
    $strumento_campione=$_GET{"strcmp"};
-//   echo $strumento_campione;
-   $n_giorni=$_GET["n_day"];
-//   echo $n_giorni;
+   $from_giorno=$_GET["from_day"];
    $pm=$_GET["pm"];
-//   echo $pm;
 }
 else {
    $strumento_campione=$argv[1];
-   $n_giorni=$argv[2];
-   $pm=$argv[3];
+   $from_giorno=$argv[2];
+   $n_giorni=$argv[3];
+   $pm=$argv[4];
 }
-$s='echo "/home/pi/alfetta/calibration/autocalibration.sh '.$strumento_campione.' '.$n_giorni.' '.$pm.'" >/var/www/html/alfetta/comandi/comando.sh';
+if ((count(explode(" ",$strumento_campione) > 1) or (strlen($strumento_campione) < 4)){{ exit("Errors Parametres\n");}
+//   echo $strumento_campione;
+if ( !preg_match('/^[0-9]{1,2}$/',$from_giorno];)){ exit("Errors Parametres\n");}
+if (!preg_match('/^[0-9]{1,2}$/',$n_giorni)){ exit("Errors Parametres\n");}
+//   echo $n_giorni;
+if ($pm!="PM10") and ($_GET["pm"]!="PM2.5")){ exit("Errors Parametres\n");}
+//   echo $pm;
+$s='echo "/home/pi/alfetta/calibration/autocalibration.sh '.$strumento_campione.' '.$from_giorno.' '.$n_giorni.' '.$pm.'" >/var/www/html/alfetta/comandi/comando.sh';
 //echo $s;
 exec($s);
-
 while (! file_exists ($path."errorcal" )){usleep(200);}
 exec('cat '.$path.'errorcal 2>&1',$er,$return);
 if (strpos($er[0],"OK") !== false){

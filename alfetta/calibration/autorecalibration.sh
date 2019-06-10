@@ -4,7 +4,8 @@
 # per lo strumento di misura PM
 # $1 grandezza da calibrare  PM2.5 o PM10
 # $2 vettore esclusioni punti 
-#
+# $3 = '0' modalità intercetta <> 0
+# $3 = '1' modalità intercetta = 0
 dir=/home/pi/alfetta/calibration
 webdir=/var/www/html/alfetta
 #rm $wedir/errorcal
@@ -22,7 +23,7 @@ then
 fi
 # Avvia calcolo regressione lineare escludendo i valori indicati in $2
 sleep .2
-if ! $dir/autocalibration.py $1 $2 ; then
+if ! $dir/autocalibration.py $1 $2 $3 ; then
    echo "Calibrazione non eseguita per errore sui dati" > $webdir/errorcal
    exit 1
 else
