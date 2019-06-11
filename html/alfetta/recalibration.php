@@ -22,10 +22,11 @@ else {
    $pm=$argv[1];
    $zi_mode=$argv[3];
 }
-if ($pm!="PM10") and ($_GET["pm"]!="PM2.5")){ exit("Errors Parametres\n");}
-if (!preg_match('/^[0-1]{1}/',$zi];)){ exit("Errors Parametres\n");}
-if (!preg_match('/^\[([0-9]{1,2},)?+([0-9]{1,2})?\]/',$exclude)){ exit("Errors Parametres\n");}
-
+if (($pm!="PM10") and ($pm!="PM2.5")){ exit("Errors Parametres 1\n");}
+if (strlen($zi) > 0){
+	if (!preg_match('/^[0-1]{1}/',$zi)){ exit("Errors Parametres 2\n");}
+}
+if (!preg_match('/^\[([0-9]{1,2},)?+([0-9]{1,2})?\]/',$exclude)){ exit("Errors Parametres 3\n");}
 $s='echo "/home/pi/alfetta/calibration/autorecalibration.sh '.$pm.' '.$exclude.' ' .$zi_mode.'" >/var/www/html/alfetta/comandi/comando.sh';
 //echo $s;
 exec($s);

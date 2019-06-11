@@ -21,7 +21,7 @@ else {
 }
 if ((count(explode(" ",$strumento_campione) > 1) or (strlen($strumento_campione) < 4)){{ exit("Errors Parametres\n");}
 //   echo $strumento_campione;
-if ( !preg_match('/^[0-9]{1,2}$/',$from_giorno];)){ exit("Errors Parametres\n");}
+if (!preg_match('/^[0-9]{1,2}$/',$from_giorno];)){ exit("Errors Parametres\n");}
 if (!preg_match('/^[0-9]{1,2}$/',$n_giorni)){ exit("Errors Parametres\n");}
 //   echo $n_giorni;
 if ($pm!="PM10") and ($_GET["pm"]!="PM2.5")){ exit("Errors Parametres\n");}
